@@ -141,6 +141,7 @@ a:hover{color:var(--fg)}
 :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12.5px;letter-spacing:.08em;color:var(--dim)}
 footer{align-items:center}
+.disc{display:block;margin-top:4px;font-size:11.5px;letter-spacing:.04em;color:var(--dim)}
 footer a{display:inline-flex;align-items:center;gap:8px;color:var(--fg);text-decoration:none;letter-spacing:.06em;padding:5px 10px;border:1px solid var(--line);transition:border-color .15s,color .15s}
 footer a::after{content:"↗";color:var(--blue);transition:transform .15s}
 footer a:hover{border-color:var(--blue);color:var(--fg)}
@@ -181,7 +182,7 @@ footer a:hover::after{transform:translate(2px,-2px)}
   </main>
 
   <nav class="chips" id="chips" aria-label="Commands"></nav>
-  <footer><span>© 2026 CyberBen · Tallinn, Estonia</span><span><a href="https://cybersafety.aero" target="_blank" rel="noopener">cybersafety.aero</a></span></footer>
+  <footer><span>© 2026 CyberBen · Tallinn, Estonia<small class="disc">AI can make mistakes. This site is for entertainment purposes only.</small></span><span><a href="https://cybersafety.aero" target="_blank" rel="noopener">cybersafety.aero</a></span></footer>
 </div>
 
 <script>
