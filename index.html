@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="CyberBen: aviation cybersafety and AI assurance, Tallinn.">
+<script>try{var t=localStorage.getItem("cb-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+<title>cyberben.ai</title>
+<link rel="preload" href="fonts/ibm-plex-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ibm-plex-mono-latin-400-normal.woff2) format('woff2')}
+@font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:500 600;font-display:swap;src:url(fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2')}
+@font-face{font-family:'Space Grotesk';font-style:normal;font-weight:600;font-display:swap;src:url(fonts/space-grotesk-latin-600-normal.woff2) format('woff2')}
+/* Shared with cybersafety.aero: --dim = the site's --faint (light #5f6773, dark #8b929d), theme key cb-theme, device theme by default. */
+/* Layout: one terminal on drafting-grid ink; a slim header with the rotor, a command strip for touch. Dark by default, a blueprint-paper light theme, switchable with `theme`. */
+:root{
+  --ink:#0c1016; --panel:#11161d; --line:#232a34; --grid:rgba(255,255,255,.035);
+  --fg:#eef1f5; --body:#a9b0bb; --dim:#8b929d; --blue:#6f9bff; --y:#ffd23f; --yt:#ffd23f; --c:#27c6ff; --ok:#22c55e; --err:#f97066;
+  --t1:#2a313c; --t2:#3a414c; --off:#151b23; --cb:#5b6a86; --sp:#3b4a66; --dimy:#7a5f0e; --shadow:rgba(0,0,0,.45);
+  --elev:inset 0 1px 0 rgba(255,255,255,.045),0 1px 2px rgba(0,0,0,.4),0 10px 22px -8px rgba(0,0,0,.5),0 34px 70px -18px rgba(0,0,0,.65),0 70px 120px -40px rgba(0,0,0,.55);
+  --mono:'IBM Plex Mono',Consolas,Menlo,monospace; --disp:'Space Grotesk',Arial,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --ink:#eef1f5; --panel:#ffffff; --line:#d3d9e2; --grid:rgba(12,16,22,.05);
+  --fg:#0c1016; --body:#3b4350; --dim:#5f6773; --blue:#2f5fe0; --y:#ffd23f; --yt:#a16a00; --c:#0a72a6; --ok:#15803d; --err:#c2362b;
+  --t1:#c4ccd7; --t2:#a9b2bf; --off:#e6eaf0; --cb:#8a97ad; --sp:#b4c0d4; --dimy:#e9c25a; --shadow:rgba(12,16,22,.12);
+  --elev:inset 0 1px 0 rgba(255,255,255,.9),0 1px 2px rgba(17,22,29,.07),0 8px 18px -6px rgba(17,22,29,.10),0 28px 56px -14px rgba(17,22,29,.16),0 60px 100px -36px rgba(17,22,29,.14);
+  color-scheme:light}}
+:root[data-theme="light"]{
+  --ink:#eef1f5; --panel:#ffffff; --line:#d3d9e2; --grid:rgba(12,16,22,.05);
+  --fg:#0c1016; --body:#3b4350; --dim:#5f6773; --blue:#2f5fe0; --y:#ffd23f; --yt:#a16a00; --c:#0a72a6; --ok:#15803d; --err:#c2362b;
+  --t1:#c4ccd7; --t2:#a9b2bf; --off:#e6eaf0; --cb:#8a97ad; --sp:#b4c0d4; --dimy:#e9c25a; --shadow:rgba(12,16,22,.12);
+  --elev:inset 0 1px 0 rgba(255,255,255,.9),0 1px 2px rgba(17,22,29,.07),0 8px 18px -6px rgba(17,22,29,.10),0 28px 56px -14px rgba(17,22,29,.16),0 60px 100px -36px rgba(17,22,29,.14);
+  color-scheme:light}
+body,.term{transition:background-color .3s,color .3s}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--ink);color:var(--body);font-family:var(--mono);font-size:14px;line-height:1.65;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;background-position:center top}
+.page{height:100%;min-height:560px;display:flex;flex-direction:column;gap:18px;max-width:900px;margin:0 auto;
+  padding-block:22px 26px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:12.5px;letter-spacing:.08em;color:var(--dim)}
+.brand{display:flex;align-items:center;gap:12px;color:var(--fg);text-decoration:none}
+.rotor{position:relative;width:46px;height:46px;flex:none}
+.rotor i{position:absolute;inset:0;background:var(--fg);-webkit-mask:var(--mark) center/contain no-repeat;mask:var(--mark) center/contain no-repeat}
+.rotor .ghost{opacity:0}
+.rotor .glow{position:absolute;inset:-6px;opacity:0;transition:opacity .6s;
+  background:radial-gradient(ellipse 30% 14% at 28% 50%,rgba(255,210,63,.95),transparent 72%),radial-gradient(ellipse 30% 14% at 72% 50%,rgba(39,198,255,.95),transparent 72%);filter:blur(5px)}
+.rotor.spin .glow{opacity:1}
+.word{font-family:var(--disp);font-weight:600;font-size:20px;letter-spacing:-.01em}
+.word b{color:var(--blue);font-weight:600}
+.dots{display:inline-flex;gap:5px}.dots i{width:7px;height:7px;border-radius:50%;display:block}
+.meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.live{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);display:inline-block}
+.term{flex:1;display:flex;flex-direction:column;min-height:0;background:var(--panel);border:1px solid var(--line);box-shadow:var(--elev);transition:border-color .4s,box-shadow .4s}
+/* state frames: amber while a CYBER caution is active; a short gold flash when the hangar opens */
+.term.caution{border-color:var(--y);box-shadow:0 0 0 1px rgba(255,210,63,.35),0 0 22px rgba(255,210,63,.28),var(--elev);animation:frame 2.4s ease-in-out infinite}
+@keyframes frame{50%{box-shadow:0 0 0 1px rgba(255,210,63,.55),0 0 34px rgba(255,210,63,.42),var(--elev)}}
+.term.gold{border-color:#e0b400;animation:goldflash 2.6s ease-out forwards}
+@keyframes goldflash{0%{box-shadow:0 0 0 1px rgba(224,180,0,0),0 0 0 rgba(255,210,63,0),var(--elev)}18%{box-shadow:0 0 0 2px rgba(224,180,0,.7),0 0 48px rgba(255,210,63,.6),var(--elev)}100%{box-shadow:0 0 0 1px rgba(224,180,0,0),0 0 0 rgba(255,210,63,0),var(--elev)}}
+@media (prefers-reduced-motion:reduce){.term.caution,.term.gold{animation:none}.term.gold{box-shadow:0 0 0 2px rgba(224,180,0,.6),0 0 30px rgba(255,210,63,.45),var(--elev)}}
+.bar{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;border-bottom:1px solid var(--line);font-size:12.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.bar>span{white-space:nowrap}
+.bar-r{display:flex;align-items:center;gap:10px}
+@media (max-width:400px){.bar .tty{display:none}.bar{letter-spacing:.06em}}
+#state{color:var(--blue)}
+#state.air{color:var(--yt)}
+/* seatbelt sign: appears in flight */
+.belt{display:none;align-items:center;justify-content:center;width:26px;height:18px;border:1px solid var(--t2);color:var(--t2);transition:color .3s,border-color .3s,box-shadow .3s}
+.belt svg{width:13px;height:13px;display:block}
+.belt.show{display:inline-flex}
+.belt.on{color:var(--y);border-color:var(--y);box-shadow:0 0 10px rgba(255,210,63,.45)}
+:root[data-theme="light"] .belt.on{color:#11161d;background:var(--y);box-shadow:0 0 10px rgba(255,210,63,.6)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .belt.on{color:#11161d;background:var(--y);box-shadow:0 0 10px rgba(255,210,63,.6)}}
+.belt.flash{animation:beltflash .5s steps(1) 4}
+@keyframes beltflash{50%{color:var(--t2);border-color:var(--t2);background:transparent;box-shadow:none}}
+@media (prefers-reduced-motion:reduce){.belt.flash{animation:none}}
+.ruler{height:8px;border-bottom:1px solid var(--line);background:repeating-linear-gradient(90deg,var(--t1) 0 1px,transparent 1px 11px),repeating-linear-gradient(90deg,var(--t2) 0 2px,transparent 2px 44px);background-size:auto 4px,auto 8px;background-repeat:repeat-x;background-position:0 4px,0 0;position:relative;transition:background-color .4s,box-shadow .4s}
+/* easter eggs: exterior lights on the ruler */
+.ruler.lb{background-color:#2f6bff;box-shadow:0 0 12px 2px rgba(47,107,255,.65),0 0 36px rgba(47,107,255,.3);animation:hum 2.5s ease-in-out infinite;z-index:1}
+@keyframes hum{50%{background-color:#4d82ff;box-shadow:0 0 18px 4px rgba(77,130,255,.8),0 0 54px rgba(77,130,255,.4)}}
+.ruler::before,.ruler::after{content:"";position:absolute;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;opacity:0;transition:opacity .3s;z-index:2}
+.ruler::before{left:10px;background:#ff3b30;box-shadow:0 0 10px 3px rgba(255,59,48,.75)}
+.ruler::after{right:10px;background:#22c55e;box-shadow:0 0 10px 3px rgba(34,197,94,.75)}
+.ruler.nav::before,.ruler.nav::after{opacity:1;animation:strobe 1.6s steps(1) infinite}
+@keyframes strobe{0%{background:#fff;box-shadow:0 0 16px 6px rgba(255,255,255,.95)}6%{background:#fff;box-shadow:0 0 16px 6px rgba(255,255,255,.95)}7%{background:inherit}}
+.ruler.nav::before{animation-name:strobe-r}.ruler.nav::after{animation-name:strobe-g}
+@keyframes strobe-r{0%,5%{background:#fff;box-shadow:0 0 16px 6px rgba(255,255,255,.95)}6%,100%{background:#ff3b30;box-shadow:0 0 10px 3px rgba(255,59,48,.75)}}
+@keyframes strobe-g{0%,5%{background:#fff;box-shadow:0 0 16px 6px rgba(255,255,255,.95)}6%,100%{background:#22c55e;box-shadow:0 0 10px 3px rgba(34,197,94,.75)}}
+@media (prefers-reduced-motion:reduce){.ruler.lb,.ruler.nav::before,.ruler.nav::after{animation:none}}
+.screen{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:18px 20px 22px;cursor:text;scrollbar-width:thin;scrollbar-color:var(--t1) transparent}
+#out{white-space:pre-wrap;word-break:break-word;margin:0}
+#out,.cmdline{max-width:82ch}
+.cmdline:focus-within .p b{color:var(--c)}
+.l{min-height:1.65em}
+.p{color:var(--blue)}.p b{color:var(--fg);font-weight:500}
+.ok{color:var(--ok)}.y{color:var(--yt)}.c{color:var(--c)}.d{color:var(--dim)}.f{color:var(--fg)}.err{color:var(--err)}
+.h{color:var(--fg);font-weight:500}
+a{color:var(--c);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px}
+a:hover{color:var(--fg)}
+.cmdline{display:flex;align-items:baseline;gap:0;margin-top:2px}
+.cmdline[hidden]{display:none}
+#cmd{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--fg);font:inherit;caret-color:var(--blue);padding:0;margin-left:.6ch}
+.cursor{display:inline-block;width:.6em;height:1.15em;background:var(--blue);vertical-align:-.2em;animation:blink 1.05s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+@keyframes roll{to{transform:rotate(360deg)}}
+.term.roll{animation:roll 1.4s cubic-bezier(.45,0,.2,1)}
+.rotor.burn .glow{opacity:1;filter:blur(7px) brightness(1.6)}
+.bar-prog{color:var(--blue)}
+.annun{display:flex;gap:6px}
+.annun button{font:inherit;font-size:11px;font-weight:600;letter-spacing:.12em;padding:4px 8px;border:1px solid var(--t1);background:var(--off);color:var(--t2);cursor:default;line-height:1.2}
+.annun button.on{background:var(--y);border-color:var(--y);color:#11161d;cursor:pointer;box-shadow:0 0 14px rgba(255,210,63,.55)}
+.annun button.on.blink{animation:lamp .9s steps(1) infinite}
+@keyframes lamp{50%{background:var(--dimy);border-color:var(--dimy);box-shadow:none}}
+.live.caution{background:var(--y);box-shadow:0 0 8px var(--y)}
+.amber{color:var(--yt)}
+.game{white-space:normal;line-height:1.25;margin:4px 0 2px;user-select:none;-webkit-user-select:none;touch-action:none}
+.game .hud{color:var(--body)}
+.game .sky{display:block;white-space:pre;overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:2px 0}
+.game .pl{color:var(--fg);font-weight:600}.game .sh{color:var(--ok)}
+.game .cb{color:var(--cb)}.game .dr{color:var(--err)}.game .bd{color:var(--yt)}.game .pt{color:var(--ok);font-weight:600}.game .sp{color:var(--sp)}.game .gr{color:var(--t2)}
+.game .msg{color:var(--fg)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips button{font:inherit;font-size:12px;letter-spacing:.06em;background:transparent;color:var(--body);border:1px solid var(--line);padding:7px 12px;cursor:pointer;touch-action:manipulation;transition:color .15s,border-color .15s,transform .1s}
+.chips button:hover{color:var(--fg);border-color:var(--blue)}
+.chips button:active{color:var(--fg);border-color:var(--blue);background:var(--off);transform:scale(.96)}
+#lamp-cyber{position:relative}#lamp-cyber::after{content:"";position:absolute;inset:-11px -6px}
+.chips button b{color:var(--blue);font-weight:500;margin-right:6px}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12.5px;letter-spacing:.08em;color:var(--dim)}
+footer{align-items:center}
+footer a{display:inline-flex;align-items:center;gap:8px;color:var(--fg);text-decoration:none;letter-spacing:.06em;padding:5px 10px;border:1px solid var(--line);transition:border-color .15s,color .15s}
+footer a::after{content:"↗";color:var(--blue);transition:transform .15s}
+footer a:hover{border-color:var(--blue);color:var(--fg)}
+footer a:hover::after{transform:translate(2px,-2px)}
+@media (max-width:600px){.meta .opt{display:none}.annun .x{display:none}.screen{padding:14px 14px 18px}body{font-size:14px}.page{min-height:520px}
+  .chips button{min-height:44px}footer a{min-height:44px;padding:0 14px}}
+@media (pointer:coarse){#cmd{font-size:16px}}
+@media (prefers-reduced-motion:reduce){.chips button:active{transform:none}}
+@media (prefers-reduced-motion:reduce){.annun button.on.blink{animation:none}.cursor{animation:none}.rotor .glow{transition:none}}
+</style>
+</head>
+<body>
+
+
+<div class="page">
+  <h1 class="sr-only">CyberBen: aviation cybersafety and AI assurance</h1>
+  <div id="sr" class="sr-only" aria-live="polite"></div>
+  <header>
+    <a class="brand" href="https://cybersafety.aero" target="_blank" rel="noopener" aria-label="CyberBen, cybersafety.aero">
+      <span class="rotor" id="rotor" aria-hidden="true"><span class="glow"></span><i class="ghost" id="g2"></i><i class="ghost" id="g1"></i><i id="r0"></i></span>
+      <span class="word">cyberben<b>.ai</b></span>
+      <span class="dots" aria-hidden="true"><i style="background:var(--y)"></i><i style="background:var(--c)"></i></span>
+    </a>
+    <div class="meta"><div class="annun" aria-label="Annunciators"><button type="button" id="lamp-cyber" aria-label="CYBER caution light, off">CYBER</button><button type="button" class="x" id="lamp-gnss" tabindex="-1">GNSS</button><button type="button" class="x" id="lamp-adsb" tabindex="-1">ADS-B</button><button type="button" class="x" id="lamp-acars" tabindex="-1">ACARS</button></div><span class="live" id="liveDot" aria-hidden="true"></span><span id="sysText">SYS · SECURE</span><span class="opt">59°26′N 24°45′E</span></div>
+  </header>
+
+  <main class="term" aria-label="CyberBen terminal">
+    <div class="bar"><span>ai@cyberben<span class="tty"> · tty1</span></span><span class="bar-r"><span class="belt" id="belt" role="img" aria-label="Fasten seatbelt sign"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="2.6" r="1.6" fill="currentColor" stroke="none"/><path d="M5 15V9.5C5 7 6.2 5.6 8 5.6S11 7 11 9.5V15"/><path d="M3.2 10.2h3.3M9.5 10.2h3.3"/><rect x="6.5" y="9.2" width="3" height="2" rx=".4" fill="currentColor" stroke="none"/></svg></span><span id="state">booting</span></span></div>
+    <div class="ruler" aria-hidden="true"></div>
+    <div class="screen" id="screen">
+      <div id="out" role="log" aria-live="polite"></div>
+      <form class="cmdline" id="line" hidden autocomplete="off">
+        <span class="p"><b>ai</b>@cyberben:~$</span>
+        <label for="cmd" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Command</label>
+        <input id="cmd" spellcheck="false" autocapitalize="off" autocomplete="off" enterkeyhint="go">
+      </form>
+    </div>
+  </main>
+
+  <nav class="chips" id="chips" aria-label="Commands"></nav>
+  <footer><span>© 2026 CyberBen · Tallinn, Estonia</span><span><a href="https://cybersafety.aero" target="_blank" rel="noopener">cybersafety.aero</a></span></footer>
+</div>
+
+<script>
+const MARK="url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjY4MCA5NTUgMTA0MCA0ODYiIHdpZHRoPSIxMDQwIiBoZWlnaHQ9IjQ4NiIgeG1sbnM6YzJwYT0iaHR0cDovL2MycGEub3JnL21hbmlmZXN0Ij48cGF0aCBmaWxsPSIjZmZmZmZmIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xNjk5Ljc2OTk5OTk5OTk5OTggOTgwLjMxNGMtMzEuNDg5IDYxLjg4Ny03Mi41NDkgMTE0Ljc4MS0xMTYuNzcgMTUwLjQyNi0xMS42MTQgOS4zNjItMzYuNDg4IDI2LjExOS01MC42NjkgMzQuMTM1LTIyLjUyNSAxMi43MzItNjMuODg2IDMxLjE3Ni04NC4xNzUgMzcuNTM2LTM3LjQxNiAxMS43MjktNzAuNzY5IDQuNTY5LTkyLjg5LTE5Ljk0MS01LjU4NC02LjE4Ni0xNC40MTItMTkuNTYtMTUuODIzLTIzLjk3LS4zNTItMS4xLjgyNS40NzUgMi42MTcgMy41IDcuODEyIDEzLjE5MiAxOS4yNzcgMjUuMjQxIDMwLjMzMSAzMS44NzcgMTguMDczIDEwLjg1IDQyLjA3MiAxMi44NTkgNjcuMTA5IDUuNjE4IDI3LjEzMy03Ljg0NyA3Ny45NDUtMzIuNjk3IDEwOC01Mi44MTggNDQuMjMtMjkuNjExIDc5Ljk4LTY2LjQ2IDExMS43NDMtMTE1LjE3NyAxNi4zNzEtMjUuMTEgMzIuMTQyLTUzLjkzMSAzMS41NjQtNTcuNjgzLS4yMzgtMS41NDUtMy41NiAxLjQ2OC0xNC43MTggMTMuMzQ0LTI1LjAzNSAyNi42NDgtNDcuMTk0IDQ2LjU1My03MS42MjQgNjQuMzM5LTUyLjUzOSAzOC4yNS0xMDkuNTg4IDYxLjM1NS0xNzIuOTY1IDcwLjA1My0xNi4yNDIgMi4yMjktNTguNDEyIDMuMDU1LTc2Ljc4MSAxLjUwNS0zNi4xMjMtMy4wNDgtODEuNTI2LTEzLjg0Mi05NS4zMDYtMjIuNjU3LTguMTQzLTUuMjA5LTE5Ljg0LTEwLjEwNS0zMS4yNDMtMTMuMDc4LTEzLjIyMy0zLjQ0Ny0zNC43MzktNC4yOTMtNDcuNjctMS44NzYtMjQuNDU1IDQuNTcyLTQ1LjE0MiAxNS4zMDgtNjEuODU5IDMyLjEwMy0xOC42MDIgMTguNjg3LTI5LjE2NCA0MC40MS0zMy4xMjMgNjguMTJsLTEuNDA0IDkuODMuMzA5LTE3Yy4yNjMtMTQuNDcyLjY5NS0xOC40NjMgMi45MDctMjYuODM3IDMuMjExLTEyLjE1NCAxMC41NjgtMjcuNjYgMTguMDAzLTM3Ljk0NWw1LjYyNS03Ljc4MS01LjIyOS42MjdjLTkzLjExNSAxMS4xNzMtMTYzLjYyNSAzNC4wNzgtMjI4LjA5NyA3NC4wOTctNzkuMDAzIDQ5LjAzOC0xMzkuOTIyIDEyMy44NS0xNzIuNzYyIDIxMi4xNjQtMy41MyA5LjQ5My0xMC45MDQgMzMuMjk0LTEwLjg0OSAzNS4wMTYuMDEyLjM2MyAzLjI5OC01LjY0MSA3LjMwMy0xMy4zNDEgNDEuNTk4LTc5Ljk4MiA5MC44MzUtMTM1Ljk5NiAxNTMuMTc2LTE3NC4yNjEgMzUuNjEtMjEuODU4IDg4LjgyMi00NC45OTEgMTEzLjUtNDkuMzQzIDEwLjQzMi0xLjg0IDI4Ljg0Ny0xLjU2NCAzNy41LjU2MiAzLjg1Ljk0NiAxMS4yNzQgMy43NjkgMTYuNDk3IDYuMjc0IDguMzc1IDQuMDE1IDEwLjY3OSA1Ljc0NyAxOS41IDE0LjY2MSA2LjgyMSA2Ljg5MiAxMS4zMzkgMTIuNDkzIDE0LjIwNCAxNy42MDcgNS44MzMgMTAuNDEyIDYuNDkxIDEzLjA4OC45ODQgNC0xMS4yNDctMTguNTYxLTI1LjI2NS0zMC40MzgtNDMuMTk1LTM2LjU5OC0xMC41NjMtMy42My0yOS44Ny00LjUxOS00Mi41MDYtMS45NTktMTcuNjMzIDMuNTczLTM4LjgxOCAxMS44OTUtNjkuOTg0IDI3LjQ5Mi02NS45NjMgMzMuMDExLTExMC43NDIgNzEuNTcxLTE1Mi43NzggMTMxLjU2MS0xNi45NjQgMjQuMjA5LTQwLjkzNSA2Ni40ODEtMzkuNjI5IDY5Ljg4NS40ODIgMS4yNTcgMi4xMjUtLjAyMyA3LjIyMi01LjYyNyA0NC43ODEtNDkuMjM4IDg3LjM1OS04Mi44MDkgMTM1Ljc4OS0xMDcuMDYzIDY4LjAyMS0zNC4wNjUgMTQzLjQ3NS00NS44MTkgMjE5LjA4NS0zNC4xMjcgMjkuMDY1IDQuNDk0IDU5LjM0IDEyLjkwOSA2OS4xNjkgMTkuMjI1IDE5LjM0NSAxMi40MyA0Ny4xNzUgMTguODA5IDcxLjEyNSAxNi4zMDEgNTQuMjQyLTUuNjc5IDk2LjI1NC00Ni42MjUgMTAyLjk5NC0xMDAuMzgxLjU1NC00LjQxNCAxLjIzNS04LjI1NSAxLjUxNS04LjUzNCAxLjE1OC0xLjE1OC4zOTYgMjQuMjA3LS45NjEgMzEuOTg5LTIuOTE3IDE2LjcyNC0xMS4wNjIgMzUuODI0LTIwLjcyMSA0OC41ODYtNS43MDggNy41NDMtNy4xODkgNy4yNDUgMTguNjM4IDMuNzQ0IDExNS42MjMtMTUuNjc2IDIwOC4xNDItNTcuNDU3IDI3OS43ODQtMTI2LjM1MiA0NC4yNjktNDIuNTcgNzkuMjQxLTk1Ljg5OCAxMDEuNzQyLTE1NS4xNDIgNC40MzEtMTEuNjY2IDEyLjM1Mi0zNy4wMDcgMTEuNzU0LTM3LjYwNS0uMTQ2LS4xNDctMi44MjggNC43NjctNS45NTggMTAuOTE5Ij48L3BhdGg+PC9zdmc+)";
+document.documentElement.style.setProperty('--mark',MARK);
+const out=document.getElementById('out'), line=document.getElementById('line'), cmd=document.getElementById('cmd'), screen=document.getElementById('screen'), stateEl=document.getElementById('state');
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lightMQ=matchMedia('(prefers-color-scheme: light)');
+function curTheme(){const t=document.documentElement.getAttribute('data-theme');return t==='light'||t==='dark'?t:(lightMQ.matches?'light':'dark')}
+function setTheme(m){const r=document.documentElement;if(m==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',m);try{m==='auto'?localStorage.removeItem('cb-theme'):localStorage.setItem('cb-theme',m)}catch(_){}}
+try{const s=localStorage.getItem('cb-theme');if(s==='light'||s==='dark')document.documentElement.setAttribute('data-theme',s)}catch(_){}
+const P='<span class="p"><b>ai</b>@cyberben:~$</span> ';
+const sleep=ms=>new Promise(r=>setTimeout(r,skip?0:ms));
+let skip=reduce, busy=false;
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function add(html,cls){const d=document.createElement('div');d.className='l'+(cls?' '+cls:'');d.innerHTML=html;out.appendChild(d);screen.scrollTop=screen.scrollHeight;return d}
+async function type(html,text,speed=26){const d=add(html+'<span class="tt f"></span><span class="cursor"></span>');const t=d.querySelector('.tt');
+  for(let i=1;i<=text.length;i++){if(skip){t.textContent=text;break}t.textContent=text.slice(0,i);screen.scrollTop=screen.scrollHeight;await sleep(speed+Math.random()*28)}
+  d.querySelector('.cursor').remove();return d}
+function announce(t){const r=document.getElementById('sr');r.textContent='';setTimeout(()=>{r.textContent=t},60)}
+async function lines(arr,gap=70){for(const a of arr){add(a);await sleep(gap)}}
+async function dots(label,result,ms=520){const d=add(`<span class="ok">[ ok ]</span> ${label} <span class="d dd"></span>`);const s=d.querySelector('.dd');
+  const n=Math.max(2,34-label.length);for(let i=0;i<n;i++){s.textContent+='.';if(!skip)await sleep(ms/n)}s.insertAdjacentHTML('afterend',' '+result)}
+
+
+// rotor spin
+let spinning=false;
+function spin(user){if(spinning)return;spinning=true;const r=document.getElementById('rotor'),r0=document.getElementById('r0'),g1=document.getElementById('g1'),g2=document.getElementById('g2');
+  if(reduce&&!user){r.classList.add('spin');setTimeout(()=>{r.classList.remove('spin');spinning=false},1600);return}
+  const calm=reduce;r.classList.add('spin');const T=calm?1600:2600,TURN=calm?360:1440,t0=performance.now();
+  (function f(now){const p=Math.min(1,(now-t0)/T),e=calm?(p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2):1-Math.pow(1-p,3),a=TURN*e,v=calm?0:Math.pow(1-p,2);
+    r0.style.transform=`rotate(${a}deg)`;g1.style.transform=`rotate(${a-10}deg)`;g2.style.transform=`rotate(${a-20}deg)`;g1.style.opacity=.35*v;g2.style.opacity=.18*v;
+    if(p<1)requestAnimationFrame(f);else{setTimeout(()=>{r.classList.remove('spin');spinning=false},700)}})(t0)}
+
+// ---------- commands ----------
+const FILES={'focus.txt':'focus','research/':'research','services/':'services','contact.txt':'contact','.blackbox':'blackbox','.hangar':'hangar'};
+const C={
+  help:async()=>lines([
+    '<span class="f">Commands</span>',
+    '  <span class="c">whoami</span>     who runs this terminal',
+    '  <span class="c">focus</span>      what changes when AI meets the airframe',
+    '  <span class="c">research</span>   current research topics',
+    '  <span class="c">services</span>   what CyberBen does',
+    '  <span class="c">contact</span>    how to reach us',
+    '  <span class="c">spin</span>       spin up the rotor',
+    '  <span class="c">theme</span>      light · dark · auto',
+    '  <span class="c">ls</span> · <span class="c">cat</span> <span class="d">&lt;file&gt;</span> · <span class="c">date</span> · <span class="c">history</span> · <span class="c">clear</span>',
+    '<span class="d">Tab completes. Arrow keys recall earlier commands.</span>','<span class="d">Some commands are not listed. Pilots tend to find them.</span>'],35),
+  whoami:async()=>lines(['<span class="f">CyberBen</span>','Independent aviation cybersafety advisory · Tallinn, Estonia · est. 2022']),
+  focus:async()=>{add('<span class="h">When the model can affect the airframe, assurance changes.</span>');await sleep(160);
+    await lines(['Learning-enabled functions blur the line between safety and security.','We fold both into your assurance case:','',
+      '  <span class="ok">●</span> data and provenance','  <span class="c">●</span> adversarial robustness','  <span class="y">●</span> runtime monitoring','  <span class="f">●</span> explainability',
+      '  <span class="p">●</span> model and supply-chain integrity','  <span class="err">●</span> AI threat assessment',''],90)},
+  research:async()=>lines(['<span class="d">cybersafety.aero / lab</span>',
+    '  <span class="y">R-01</span>  Assurance of learning-enabled functions','  <span class="c">R-02</span>  Adversarial robustness','  <span class="ok">R-03</span>  Runtime assurance','  <span class="f">R-04</span>  AI and the aviation threat landscape',
+    '  <span class="p">R-05</span>  Securing the AI supply chain: data, models, updates','  <span class="err">R-06</span>  Attacks on learning-enabled avionics: poisoning, evasion, spoofed inputs'],90),
+  services:async()=>lines(['  <span class="d">ENABLEMENT </span> Training','  <span class="d">ADVISORY   </span> Governance','  <span class="d">PROGRAM    </span> Integration','  <span class="d">TECHNICAL  </span> Engineering','  <span class="d">ASSURANCE  </span> Certification','  <span class="d">OPERATIONS </span> Security management','','Whatever stage you\'re at, we plug in.'],70),
+  contact:async()=>lines(['Start a conversation at <a href="https://cybersafety.aero" target="_blank" rel="noopener">cybersafety.aero</a>','Encrypted? The PGP key is published there too.']),
+  spin:async()=>{spin(true);await lines(['<span class="ok">[ ok ]</span> rotor spin-up · settling on the logo'])},
+  ls:async(a)=>lines([(a.includes('-a')?'<span class="y">.blackbox</span>   <span class="y">.hangar</span>   ':'')+'<span class="c">focus.txt</span>   <span class="c">research/</span>   <span class="c">services/</span>   <span class="c">contact.txt</span>']),
+  blackbox:async()=>lines(['<span class="y">FLIGHT DATA RECORDER</span> · ai@cyberben','  incidents logged ........ '+LOG.length,'  challenge coins minted .. 0 · <span class="d">[REDACTED]</span>','  near misses ............. 1',...lastEntry(),'  sim hours logged ........ 0 · <span class="d">type</span> <span class="c">play</span>','  exterior lights ......... '+extLights(),'  flight status ........... '+(inFlight?'<span class="y">airborne · CB-42</span>':'on ground · ready')]),
+  coffee:async()=>lines(['<span class="err">HTTP 418:</span> I\'m a teapot.',inFlight?'The galley cart is on its way. Please keep your threat model stowed.':'Galley service starts after take-off.']),
+  atc:async()=>{if(inFlight)return lines(['<span class="c">tower:</span> CyberBen four-two, you are already airborne. Contact Tallinn Radar.','<span class="d">Type</span> <span class="c">land</span> <span class="d">to come back.</span>']);
+    const info=Math.random()<.5?'DELTA':'ECHO',m=metar();atis=info;
+    await lines(['<span class="d">ATIS EETN · information</span> <span class="y">'+info+'</span>','  <span class="f">'+m+'</span>',''],120);await sleep(300);
+    await type('<span class="d">CB-42:</span> ','Tallinn Tower, CyberBen four-two, holding point runway two-six, information '+info[0]+info.slice(1).toLowerCase()+', ready for departure.',16);await sleep(500);
+    if(!navOn()){await type('<span class="c">tower:</span> ','CyberBen four-two, hold position. Your position lights are off.',14);await sleep(300);
+      return lines(['<span class="amber">[!]</span> pre-departure check · position lights OFF','<span class="d">Type</span> <span class="c">navlights</span><span class="d">, then call the tower again.</span>'])}
+    await type('<span class="c">tower:</span> ','CyberBen four-two, wind two-four-zero degrees eight knots, runway two-six, cleared for take-off. No threats on frequency.',14);await sleep(400);
+    await type('<span class="d">CB-42:</span> ','Cleared for take-off runway two-six, CyberBen four-two.',16);await sleep(300);await C.fly()},
+  land:async()=>{if(!inFlight)return lines(['Already on the ground. Try <span class="c">atc</span> for a departure.']);
+    if(lit.size)return lines(['<span class="c">tower:</span> CyberBen four-two, continue approach, report when the caution is resolved.','<span class="amber">[!]</span> CYBER caution still active · run the <span class="c">checklist</span>, then <span class="c">ack</span>']);
+    await type('<span class="c">tower:</span> ','CyberBen four-two, wind two-four-zero degrees eight knots, runway two-six, cleared to land.',14);await sleep(400);
+    await lines(['<span class="ok">[ ok ]</span> touchdown · runway 26 · Tallinn','<span class="d">Welcome to Tallinn. Please keep your threat model fastened until the aircraft has come to a complete stop.</span>'],160);setFlight(false)},
+  fly:async()=>{if(inFlight)return lines(['Already airborne · CB-42 cruising. Type <span class="c">land</span> to come back down.']);
+    if(!navOn())return lines(['<span class="amber">[!]</span> take-off rejected · position lights OFF','<span class="d">No lights, no take-off. Type</span> <span class="c">navlights</span> <span class="d">first, or run the</span> <span class="c">checklist</span><span class="d">.</span>']);
+    const d=add('');d.style.whiteSpace='nowrap';d.style.overflow='hidden';
+    d.innerHTML='<span class="d">··········</span><span class="f">✈</span>';const dw=d.firstChild.getBoundingClientRect().width/10||8.4,pw=d.lastChild.getBoundingClientRect().width||16;
+    const w=Math.max(8,Math.floor((d.clientWidth-pw)/dw)-1);d.innerHTML='';
+    for(let i=0;i<=w;i+=skip||reduce?w:2){d.innerHTML='<span class="d">'+'·'.repeat(i)+'</span><span class="f">✈</span>';screen.scrollTop=screen.scrollHeight;await sleep(28)}
+    setFlight(true);await lines(['Wheels up. The seatbelt sign stays on until the threat model is complete.','<span class="d">CB-42 climbing · type</span> <span class="c">land</span> <span class="d">to come back down.</span>'])},
+  hack:async(a)=>{if(!inFlight)return grounded('hack');const steps=['scanning ARINC 429 bus','bypassing cabin firewall','escalating to flight control','extracting secrets'];
+    for(let k=0;k<steps.length;k++){const d=add('');for(let i=0;i<=10;i++){d.innerHTML=`<span class="bar-prog">[${'#'.repeat(i)}${'.'.repeat(10-i)}]</span> ${i*10}% ${steps[k]}`;await sleep(k===3?120:45)}}
+    logAttack('hack');await sleep(300);await lines(['<span class="err">ACCESS DENIED.</span> Stopping this is literally our job.','<span class="d">Want to find these holes before someone else does?</span> <span class="c">contact</span>'],120)},
+  gps:async()=>{if(!inFlight)return grounded('gps');await lines(['<span class="d">GNSS · 12 satellites tracked · integrity nominal</span>']);const d=add('');
+    const pos=[[59,26.0,24,45.0],[59,26.4,24,46.1],[59,27.3,24,48.9],[59,29.8,24,55.2],[58,61.0,25,9.0]];
+    for(const [a,b,c,e] of pos){const la=a+Math.floor(b/60),lm=(b%60).toFixed(1),lo=c+Math.floor(e/60),om=(e%60).toFixed(1);d.innerHTML=`  POS <span class="f">${la}°${lm}′N ${lo}°${om}′E</span> <span class="d">drift</span>`;await sleep(380)}
+    await sleep(300);d.innerHTML='  POS <span class="err">0°00.0′N 0°00.0′E</span> <span class="d">· Null Island</span>';await sleep(400);
+    await lines(['<span class="amber">[!]</span> position jump of about 6,700 km in 1 s · ground speed 24 million km/h','<span class="amber">[!]</span> integrity alarm · GNSS position rejected','<span class="ok">[ ok ]</span> navigating on IRS and DME · crew informed','<span class="d">Lovely beaches on Null Island. No runway, though.</span>'],160);caution('gnss','GNSS spoofing')},
+  adsb:async()=>{if(!inFlight)return grounded('adsb');await lines(['<span class="d">ADS-B IN · 1090 MHz · range 80 NM</span>','  <span class="d">CALLSIGN   ALT     GS      TRK</span>']);
+    for(const r of ['NRD88      FL350   452 kt  245','LAB42      FL120   280 kt  090','TWR7       FL380   470 kt  210']){add('  '+r);await sleep(260)}
+    await sleep(500);add('  <span class="err">GHOST1     FL600   2,950 kt  360   ↑ 30,000 ft/min</span>');await sleep(600);
+    await lines(['<span class="amber">[!]</span> implausible kinematics · no radar return · unauthenticated broadcast','<span class="ok">[ ok ]</span> target rejected by plausibility check','<span class="d">ADS-B trusts everyone who speaks on 1090 MHz. We don\'t.</span>'],160);caution('adsb','ADS-B ghost target')},
+  acars:async()=>{if(!inFlight)return grounded('acars');await lines(['<span class="d">ACARS UPLINK · VHF 131.725 MHz</span>','  FROM  OPS','  TO    CB-42']);await sleep(300);
+    await type('  MSG   ','PLEASE DIVERT TO NULL ISLAND 0N 000E. FUEL FINE. COFFEE BETTER THERE.',16);await sleep(400);
+    await lines(['<span class="amber">[!]</span> no message authentication · sender not on dispatch list','<span class="amber">[!]</span> content fails sanity check: there is no runway at 0N 000E','<span class="ok">[ ok ]</span> crew action: verify with dispatch by voice'],170);caution('acars','Tampered ACARS uplink')},
+  ack:async()=>{if(!lit.size)return lines(['Nothing to acknowledge. Enjoy the quiet.']);clearCaution();await lines(['<span class="ok">[ ok ]</span> caution acknowledged · CYBER light reset'])},
+  lightbar:async(a)=>{const on=a.trim()==='off'?false:a.trim()==='on'?true:!ruler.classList.contains('lb');lightbar(on);
+    await lines(on?['<span class="ok">[ ok ]</span> light bar on · blue','<span class="d">'+(inFlight?'Logo light on · visible to other traffic.':'Ground power connected.')+' Type</span> <span class="c">lightbar</span> <span class="d">again to switch it off.</span>']:['<span class="ok">[ ok ]</span> light bar off'])},
+  navlights:async(a)=>{const on=a.trim()==='off'?false:a.trim()==='on'?true:!navOn();
+    if(!on&&inFlight)return lines(['<span class="amber">[!]</span> position lights stay on while airborne.','<span class="d">Type</span> <span class="c">land</span> <span class="d">first.</span>']);ruler.classList.toggle('nav',on);
+    await lines(on?['<span class="ok">[ ok ]</span> position lights on','  <span style="color:#ff3b30">●</span> red · port wing tip (left)','  <span class="ok">●</span> green · starboard wing tip (right)','  <span class="f">●</span> white strobes · anti-collision','<span class="d">Red on the left, green on the right: you are looking from the cockpit.</span>']:['<span class="ok">[ ok ]</span> position lights off'])},
+  lights:async(a)=>{const on=a.trim()!=='off';lightbar(on);if(!on&&inFlight)return lines(['<span class="ok">[ ok ]</span> light bar off','<span class="amber">[!]</span> position lights stay on while airborne.']);
+    ruler.classList.toggle('nav',on);await lines([on?'<span class="ok">[ ok ]</span> all exterior lights on':'<span class="ok">[ ok ]</span> all exterior lights off'])},
+  hangar:async()=>lines(['<span class="y">.hangar</span> · ACCESS RESTRICTED','  door ................ <span class="err">locked</span>','  unlock .............. say the callsign the way the tower would','  callsign ............ <span class="f">C · O · I · N</span>']),
+  coin:async()=>lines(['<span class="err">denied:</span> no coin without clearance.','<span class="d">Something in</span> <span class="c">ls -a</span> <span class="d">is locked.</span>']),
+  checklist:async(a)=>{const ok='<span class="ok">[x]</span>',no='<span class="amber">[ ]</span>',D=(l,s)=>l+' '+'.'.repeat(Math.max(2,20-l.length))+' '+s,R=(c,l,s)=>'  '+(c?ok:no)+' '+D(l,s);
+    const nav=navOn(),cau=[...lit].map(x=>({gnss:'GNSS',adsb:'ADS-B',acars:'ACARS'}[x])).filter(Boolean);
+    if(!inFlight){const open=[!nav,!atis,!lampDone].filter(Boolean).length;
+      return lines(['<span class="y">CHECKLIST</span> · BEFORE TAKE-OFF · CB-42',R(1,'threat model','loaded'),R(1,'runtime monitor','armed'),R(1,'GNSS integrity','monitoring'),R(1,'ADS-B plausibility','armed'),R(1,'ACARS uplinks','verify by voice'),
+        R(lampDone,'annunciators',lampDone?'tested':'not tested → <span class="c">lamptest</span>'),R(nav,'position lights',nav?'ON':'OFF → <span class="c">navlights</span>'),R(!!atis,'ATIS',atis?'information '+atis:'not received → <span class="c">atc</span>'),R(!cau.length,'CYBER caution',cau.length?cau.join(' · ')+' → <span class="c">ack</span>':'clear'),
+        '  <span class="d">[·]</span> '+D('seatbelt sign','on at take-off'),'',open||cau.length?'<span class="amber">'+(open+(cau.length?1:0))+' item(s) open.</span> <span class="d">Then call the tower:</span> <span class="c">atc</span>':'<span class="ok">Checklist complete.</span> <span class="d">Ready for departure:</span> <span class="c">atc</span>'],50)}
+    return lines(['<span class="y">CHECKLIST</span> · IN-FLIGHT EVENTS · CB-42','<span class="d">Drills are live now. Type the command to run one.</span>',
+      '  <span class="f">GNSS position jump</span> <span class="d">· drill</span> <span class="c">gps</span>','    cross-check IRS/DME · reject GNSS · tell ATC',
+      '  <span class="f">ADS-B ghost target</span> <span class="d">· drill</span> <span class="c">adsb</span>','    plausibility check · ignore unverified traffic',
+      '  <span class="f">Odd ACARS uplink</span> <span class="d">· drill</span> <span class="c">acars</span>','    no action until confirmed with dispatch by voice',
+      '  <span class="f">CYBER caution light</span>','    identify the source · contain · then <span class="c">ack</span>'+(cau.length?' · <span class="amber">active: '+cau.join(' · ')+'</span>':''),
+      '','<span class="y">BEFORE LANDING</span>',R(nav,'position lights',nav?'ON':'OFF'),R(!lbOn(),'light bar',lbOn()?'ON → lightbar off':'off'),R(!cau.length,'CYBER caution',cau.length?'open → ack':'clear'),R(1,'seatbelt sign','ON'),'','<span class="d">Then:</span> <span class="c">land</span>'],50)},
+  lamptest:async()=>{lampDone=true;const ids=['cyber','gnss','adsb','acars'];ids.forEach(i=>document.getElementById('lamp-'+i).classList.add('on'));add('<span class="d">lamp test · all annunciators on</span>');
+    await sleep(2000);ids.forEach(i=>{if(!lit.has(i)&&!(i==='cyber'&&lit.size))document.getElementById('lamp-'+i).classList.remove('on')});await lines(['<span class="ok">[ ok ]</span> lamp test complete'])},
+  play:async()=>{if(inFlight)return lines(['The simulator stays in the hangar. Type <span class="c">land</span> first.']);return game()},
+  barrel:async()=>{if(!inFlight)return lines(['A barrel roll on the ground? Maintenance says no.','<span class="d">Take off first:</span> <span class="c">checklist</span> <span class="d">·</span> <span class="c">navlights</span> <span class="d">·</span> <span class="c">atc</span>']);const t=document.querySelector('.term');if(!reduce){t.classList.remove('roll');void t.offsetWidth;t.classList.add('roll');await sleep(1500);t.classList.remove('roll')}
+    await lines(['Barrel roll complete. Structural limits respected. Mostly.'])},
+  theme:async(a)=>{const want=a.trim().toLowerCase(),cur=curTheme();
+    if(want&&!['light','dark','auto','day','night'].includes(want))return lines(['<span class="err">theme:</span> try <span class="c">theme light</span>, <span class="c">theme dark</span> or <span class="c">theme auto</span>']);
+    const m=want==='day'?'light':want==='night'?'dark':want||(cur==='dark'?'light':'dark');setTheme(m);
+    await lines([m==='auto'?'<span class="ok">[ ok ]</span> theme follows your system · now '+curTheme():m==='light'?'<span class="ok">[ ok ]</span> day ops · blueprint paper loaded':'<span class="ok">[ ok ]</span> night ops · cockpit lighting dimmed'])},
+  day:async()=>C.theme('light'),night:async()=>C.theme('dark'),
+  date:async()=>{const d=new Date(),p=n=>String(n).padStart(2,'0'),D=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getUTCDay()],M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getUTCMonth()];
+    return lines([`${D} ${p(d.getUTCDate())} ${M} ${d.getUTCFullYear()} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())}:${p(d.getUTCSeconds())} UTC <span class="d">· ${p(d.getUTCHours())}${p(d.getUTCMinutes())}Z</span>`])},
+  history:async()=>lines(hist.length?hist.map((h,i)=>`  <span class="d">${String(i+1).padStart(3)}</span>  ${esc(h)}`):['<span class="d">no history yet</span>']),
+  clear:async()=>{const was=resetSim();out.innerHTML='';if(was)add('<span class="d">simulation reset · CB-42 back on stand · systems cold</span>')},
+  sudo:async()=>lines(['<span class="err">sudo:</span> request denied. Least privilege applies here too.']),
+  exit:async()=>lines(['There is no exit. Only continuous improvement.']),
+  'rm':async(a)=>lines([a.includes('-rf')?'<span class="err">rm:</span> change rejected. No safety assessment attached.':'<span class="err">rm:</span> read-only file system']),
+  cat:async(a)=>{const f=a.trim();if(!f)return lines(['<span class="err">cat:</span> which file? Try <span class="c">ls</span>.']);const k=FILES[f]||FILES[f+'/'];if(k)return C[k]();return lines([`<span class="err">cat:</span> ${esc(f)}: no such file`])},
+  ping:async(a)=>{const h=(a.trim()||'cybersafety.aero');await lines([`PING ${esc(h)}`]);for(let i=1;i<=3;i++){await sleep(380);add(`<span class="d">reply ${i} from</span> ${esc(h)} <span class="ok">secure</span>`)}},
+  hello:async()=>lines(['Hello. Type <span class="c">help</span> to look around.']),
+};
+// ---------- game: airspace ----------
+let gameOn=false;
+function game(){return new Promise(resolve=>{
+  gameOn=true;
+  const box=add('');box.classList.add('game');box.setAttribute('aria-hidden','true');
+  announce('AIRSPACE game started. It is a visual game: hold space or the up arrow to climb, Q or Escape to quit.');
+  const probe=document.createElement('span');probe.textContent='MMMMMMMMMM';probe.style.visibility='hidden';box.appendChild(probe);const cw=probe.getBoundingClientRect().width/10||8.4;probe.remove();
+  const W=Math.max(30,Math.min(64,Math.floor((screen.clientWidth-46)/cw))),H=12,PX=5;
+  let best=0;try{best=+localStorage.getItem('cb-air-best')||0}catch(_){}
+  const QK=matchMedia('(pointer:coarse)').matches?'tap a command button to quit':'Q to quit';
+  const QUIPS={drone:'Drone strike. Should have filed a NOTAM.',bird:'Bird strike. Not a cyber issue. Still bad.',cb:'Flew into a thunderstorm. The weather radar was on; you were not.',ground:'Controlled flight into terrain. The terrain was not compromised.'};
+  let S,timer=null,state='ready';
+  function reset(){S={y:H/2-1,vy:0,t:0,dist:0,obs:[],shield:0,spoofT:0,inv:0,up:false,speed:.5,next:18,cause:''}}
+  reset();
+  const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  function spawn(){
+    const r=Math.random();
+    if(S.dist>2&&r<.12) S.obs.push({k:'sp',x:W,w:12});
+    else if(r<.52){const gap=4,gy=rnd(1,H-2-gap);S.obs.push({k:'cb',x:W,w:2,gy,gap})}
+    else if(r<.72) S.obs.push({k:'dr',x:W,y:rnd(0,H-3)});
+    else if(r<.88) S.obs.push({k:'bd',x:W,y:rnd(0,H-3),dy:Math.random()<.5?-1:1});
+    else S.obs.push({k:'pt',x:W,y:rnd(1,H-3)});
+    S.next=rnd(13,21)-Math.min(5,Math.floor(S.dist/8));
+  }
+  function hit(cause){if(S.inv>0)return false;if(S.shield>0){S.shield--;S.inv=14;return false}S.cause=cause;return true}
+  function step(){
+    S.t++;const climb=(S.spoofT>0)?!S.up:S.up;
+    S.vy+=climb?-.32:.2;S.vy=Math.max(-.85,Math.min(.85,S.vy));S.y+=S.vy;
+    if(S.y<0){S.y=0;S.vy=0}
+    S.speed=Math.min(1.1,.5+S.dist/60);S.dist+=S.speed*.1;if(S.inv>0)S.inv--;
+    for(const o of S.obs){o.x-=S.speed;if(o.k==='bd'&&S.t%5===0){o.y+=o.dy;if(o.y<0||o.y>H-3)o.dy*=-1,o.y=Math.max(0,Math.min(H-3,o.y))}}
+    S.obs=S.obs.filter(o=>o.x+(o.w||1)>0);
+    if(--S.next<=0)spawn();
+    const py=Math.round(S.y);
+    if(py>=H-1)return over('ground');
+    let inSpoof=false;
+    for(const o of [...S.obs]){const x0=Math.round(o.x),x1=x0+(o.w||1)-1,touch=x1>=PX&&x0<=PX+1;if(!touch)continue;
+      if(o.k==='sp'){inSpoof=true}
+      else if(o.k==='cb'){if((py<o.gy||py>=o.gy+o.gap)&&hit('cb'))return over('cb')}
+      else if(o.k==='pt'){if(o.y===py){S.shield=Math.min(3,S.shield+1);S.obs.splice(S.obs.indexOf(o),1)}}
+      else if(o.y===py&&hit(o.k))return over(o.k)}
+    if(inSpoof&&S.spoofT<=0){S.spoofT=1;lamp(true)}
+    if(!inSpoof&&S.spoofT>0){S.spoofT=0;lamp(false)}
+    draw();
+  }
+  function lamp(on){const c=document.getElementById('lamp-cyber'),g=document.getElementById('lamp-gnss');if(lit.size)return;[c,g].forEach(e=>e.classList.toggle('on',on));c.classList.toggle('blink',on)}
+  function draw(msg){
+    const g=Array.from({length:H},()=>Array(W).fill(null));
+    const put=(x,y,ch,c)=>{x=Math.round(x);if(x>=0&&x<W&&y>=0&&y<H)g[y][x]=[ch,c]};
+    for(let x=0;x<W;x++){const m=(x+Math.floor(S.dist*10))%8;put(x,H-1,m===0?'¦':'_','gr')}
+    for(const o of S.obs){
+      if(o.k==='sp'){for(let dx=0;dx<o.w;dx++)for(let y=0;y<H-1;y++)if((y+dx)%3===0)put(o.x+dx,y,'~','sp')}
+      else if(o.k==='cb'){for(let dx=0;dx<o.w;dx++)for(let y=0;y<H-1;y++)if(y<o.gy||y>=o.gy+o.gap)put(o.x+dx,y,'▒','cb')}
+      else put(o.x,o.y,o.k==='dr'?'x':o.k==='bd'?'v':'+',o.k)}
+    const py=Math.round(S.y),blink=S.inv>0&&S.inv%2;
+    if(!blink){put(PX,py,'=','pl');put(PX+1,py,'>','pl');if(S.shield>0)put(PX-1,py,'(','sh')}
+    const rows=g.map(r=>r.map(c=>c?`<span class="${c[1]}">${c[0]}</span>`:' ').join('')).join('\n');
+    const fl=String(Math.round((H-1-S.y)/(H-1)*400)).padStart(3,'0');
+    const hud=`<span class="hud">FL${fl}  ·  ${S.dist.toFixed(1)} NM  ·  SHIELD ${S.shield?'<span class="sh">'+'●'.repeat(S.shield)+'</span>':'–'}  ·  BEST ${best.toFixed(1)} NM</span>`+(S.spoofT>0?'  <span class="amber">GNSS SPOOFED · CONTROLS INVERTED</span>':'');
+    const foot=msg||`<span class="d">hold SPACE / ↑ or press to climb · ${QK}</span>`;
+    box.innerHTML=hud+'<span class="sky">'+rows+'</span>'+foot;screen.scrollTop=screen.scrollHeight;
+  }
+  function over(cause){clearInterval(timer);timer=null;state='over';lamp(false);
+    const d=S.dist;if(d>best){best=d;try{localStorage.setItem('cb-air-best',String(d))}catch(_){}}
+    announce(`Crash. ${QUIPS[cause]} ${d.toFixed(1)} nautical miles flown. Press space to fly again or Q to quit.`);
+    draw(`<span class="err">CRASH</span> <span class="msg">· ${QUIPS[cause]}</span><br><span class="d">${d.toFixed(1)} NM flown · SPACE or tap to fly again · ${QK}</span>`)}
+  function start(){reset();state='run';draw();timer=setInterval(step,60)}
+  function quit(){clearInterval(timer);gameOn=false;lamp(false);removeEventListener('keydown',kd,true);removeEventListener('keyup',ku,true);
+    screen.removeEventListener('pointerdown',pd);removeEventListener('pointerup',pu);removeEventListener('pointercancel',pu);
+    draw(`<span class="d">Flight logged · best ${best.toFixed(1)} NM</span>`);box.removeAttribute('aria-hidden');announce('Game closed.');resolve()}
+  const climbKey=k=>k===' '||k==='ArrowUp'||k==='w'||k==='W';
+  function kd(e){if(!gameOn)return;
+    if(e.key==='q'||e.key==='Q'||e.key==='Escape'){e.preventDefault();e.stopPropagation();return quit()}
+    if(climbKey(e.key)||e.key==='Enter'){e.preventDefault();e.stopPropagation();if(state!=='run'){if(!e.repeat)start();return}S.up=true}}
+  function ku(e){if(!gameOn)return;if(climbKey(e.key)){e.preventDefault();S.up=false}}
+  function pd(e){if(!gameOn)return;e.preventDefault();if(state!=='run'){start();return}S.up=true}
+  function pu(){if(gameOn)S.up=false}
+  addEventListener('keydown',kd,true);addEventListener('keyup',ku,true);screen.addEventListener('pointerdown',pd);addEventListener('pointerup',pu);addEventListener('pointercancel',pu);
+  draw('<span class="msg">AIRSPACE · avoid drones <span class="dr">x</span>, birds <span class="bd">v</span> and storms <span class="cb">▒</span> · collect patches <span class="pt">+</span> · beware spoofing <span class="sp">~</span></span><br><span class="d">press SPACE or tap to take off · '+QK+'</span>');
+})}
+
+// ---------- cyber caution ----------
+const lit=new Set();
+// ---------- challenge coin teaser (hidden: ls -a → cat .hangar → spell C-O-I-N in the ICAO alphabet) ----------
+async function coinBrief(){const Y=t=>'<span class="y">'+esc(t)+'</span>',T=t=>'<span class="c">'+esc(t)+'</span>',F=t=>'<span class="f">'+esc(t)+'</span>';
+  await lines(['<span class="ok">[ ok ]</span> callsign verified · CHARLIE OSCAR INDIA NOVEMBER','<span class="ok">[ ok ]</span> hangar door open','']);spin(true);chime();goldFlash();
+  await lines([Y("      .-'''''''''-."),Y("    .'")+T('  CYBERBEN   ')+Y("'."),Y('   /                 \\'),Y('  |  ')+F('~=====(o)=====~')+Y('  |'),Y('   \\                 /'),Y("    '.")+T(' CYBERSAFETY ')+Y(".'"),Y("      '-.........-'"),''],90);
+  await lines(['<span class="y">COIN BRIEFING</span> · EYES ONLY','  object ............... CyberBen challenge coin','  status ............... at the mint · ink, gold and cyan','  challenge ............ <span class="d">[REDACTED]</span> · opens <span class="d">[REDACTED]</span>','  format ............... flags hidden in plain sight','  you already hold ..... flag 0 of ? · <span class="f">CB{hangar-door-open}</span>','  how to earn it ....... <span class="d">[REDACTED]</span>','','Keep the flag. Tell no one. Watch this terminal.'],140);
+  try{localStorage.setItem('cb-coin','flag0')}catch(_){}}
+// ---------- flight state: status + seatbelt sign ----------
+let inFlight=false,atis='',lampDone=false;
+// clear = reboot of the simulation: back on stand, lights off, cautions cleared, checklist reset (theme, history, game best and coin flag stay)
+function resetSim(){const was=inFlight||lit.size||navOn()||lbOn()||!!atis||lampDone;
+  if(lit.size)clearCaution();ruler.classList.remove('nav','lb');term.classList.remove('gold','caution');
+  inFlight=false;atis='';lampDone=false;stateEl.textContent='ready';stateEl.classList.remove('air');belt.classList.remove('show','on','flash');return was}
+// attack drills only run in flight; on the ground each says why
+const GROUND={gps:'GNSS · 12 satellites · position steady at the stand.',adsb:'ADS-B IN · only ground traffic on the apron. Nothing to see down here.',acars:'ACARS · pre-departure clearance received and verified.',hack:'Aircraft on stand, systems cold. Try again in flight; we will stop you there too.'};
+function grounded(k){return lines([GROUND[k],'<span class="d">Attack drills run in flight. Take off first:</span> <span class="c">checklist</span> <span class="d">·</span> <span class="c">navlights</span> <span class="d">·</span> <span class="c">atc</span>'])}const belt=document.getElementById('belt');
+function ding(hi){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const ac=chime.ac||(chime.ac=new A());const t=ac.currentTime,g=ac.createGain(),v=ac.createOscillator();
+  v.type='sine';v.frequency.value=hi?1318:988;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+1.1);v.connect(g).connect(ac.destination);v.start(t);v.stop(t+1.2)}catch(_){}}
+function setFlight(on){inFlight=on;stateEl.textContent=on?'in-flight':'ready';stateEl.classList.toggle('air',on);
+  if(on){belt.classList.add('show','on');belt.classList.remove('flash');void belt.offsetWidth;belt.classList.add('flash');ding(true)}
+  else{ding(false);belt.classList.remove('on','flash');setTimeout(()=>{if(!inFlight)belt.classList.remove('show')},1200)}}
+function metar(){const d=new Date(),p=n=>String(n).padStart(2,'0');let m=d.getUTCMinutes()>=50?50:d.getUTCMinutes()>=20?20:50,h=d.getUTCHours(),day=d.getUTCDate();
+  if(m===50&&d.getUTCMinutes()<20){const e=new Date(d.getTime()-3600000);h=e.getUTCHours();day=e.getUTCDate()}
+  return 'METAR EETN '+p(day)+p(h)+p(m)+'Z 24008KT 9999 FEW025 07/03 Q1012 NOSIG'}
+const ruler=document.querySelector('.ruler');
+function lightbar(on){ruler.classList.toggle('lb',on)}
+const navOn=()=>ruler.classList.contains('nav'),lbOn=()=>ruler.classList.contains('lb');
+function extLights(){const n=navOn(),b=lbOn();if(!n&&!b)return 'off · <span class="c">navlights</span> <span class="d">·</span> <span class="c">lightbar</span>';
+  return [n?'<span class="ok">position · strobes on</span>':'position off',b?'<span class="ok">light bar on</span>':'light bar off'].join(' · ')}
+function chime(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const ac=chime.ac||(chime.ac=new A());const t=ac.currentTime;
+  [0,.18,.36].forEach((o,i)=>{const g=ac.createGain(),v=ac.createOscillator();v.type='sine';v.frequency.value=i===2?988:880;g.gain.setValueAtTime(0,t+o);g.gain.linearRampToValueAtTime(.08,t+o+.02);g.gain.exponentialRampToValueAtTime(.001,t+o+.16);v.connect(g).connect(ac.destination);v.start(t+o);v.stop(t+o+.18)})}catch(_){}}
+const term=document.querySelector('.term');
+function goldFlash(){if(term.classList.contains('caution'))return;term.classList.remove('gold');void term.offsetWidth;term.classList.add('gold');clearTimeout(goldFlash.t);goldFlash.t=setTimeout(()=>term.classList.remove('gold'),2700)}
+// flight data recorder: every attack drill this session (kept across clear, like a real recorder)
+const LOG=[],LOGTXT={gnss:'GNSS spoofing · position jump to Null Island',adsb:'ADS-B ghost target GHOST1 · rejected',acars:'tampered ACARS uplink · divert to Null Island',hack:'intrusion attempt · ARINC 429 · cabin firewall'};
+function logAttack(sys){const d=new Date(),p=n=>String(n).padStart(2,'0');LOG.push({sys,t:p(d.getUTCHours())+p(d.getUTCMinutes())+'Z'})}
+function lastEntry(){const e=LOG[LOG.length-1];
+  if(!e)return ['  last entry .............. "Who put the maintenance laptop on the IFE VLAN?"','  status .................. <span class="ok">fixed before take-off</span>'];
+  const open=e.sys!=='hack'&&lit.has(e.sys);
+  return ['  last entry .............. <span class="f">'+e.t+'</span> · '+LOGTXT[e.sys],'  status .................. '+(open?'<span class="amber">caution open</span> · <span class="c">ack</span>':e.sys==='hack'?'<span class="ok">access denied · contained</span>':'<span class="ok">contained · acknowledged</span>')]}
+function caution(sys,why){lit.add(sys);logAttack(sys);term.classList.remove('gold');term.classList.add('caution');const c=document.getElementById('lamp-cyber');c.classList.add('on','blink');c.setAttribute('aria-label','CYBER caution light on: '+why+'. Press to acknowledge.');
+  document.getElementById('lamp-'+sys).classList.add('on');document.getElementById('liveDot').classList.add('caution');document.getElementById('sysText').textContent='SYS · CAUTION';
+  add(`<span class="amber">[CAUTION] CYBER</span> · ${why} · <span class="d">type</span> <span class="c">ack</span> <span class="d">or press the light</span>`);chime()}
+function clearCaution(){lit.clear();term.classList.remove('caution');['cyber','gnss','adsb','acars'].forEach(i=>document.getElementById('lamp-'+i).classList.remove('on','blink'));
+  const c=document.getElementById('lamp-cyber');c.setAttribute('aria-label','CYBER caution light, off');document.getElementById('liveDot').classList.remove('caution');document.getElementById('sysText').textContent='SYS · SECURE'}
+document.getElementById('lamp-cyber').addEventListener('click',()=>{if(lit.size&&!busy)run('ack')});
+
+const ALIAS={game:'play',flight:'play',fly2:'play',spoof:'gps','ads-b':'adsb',traffic:'adsb',tcas:'adsb',datalink:'acars',cancel:'ack','master-caution':'ack',test:'lamptest','light-bar':'lightbar',lightbar:'lightbar',bar:'lightbar','nav-lights':'navlights',nav:'navlights',wingtips:'navlights',wingtip:'navlights',strobes:'navlights',strobe:'navlights',tea:'coffee',brew:'coffee',tower:'atc',takeoff:'fly','take-off':'fly',landing:'land',touchdown:'land',check:'checklist',checklists:'checklist',preflight:'checklist','pre-flight':'checklist',hack:'hack','?':'help',man:'help',about:'whoami',ai:'focus',lab:'research',cls:'clear',hi:'hello',hey:'hello','open':'contact',web:'contact'};
+const NAMES=[...Object.keys(C),'cat focus.txt'];
+// Tab completes only the commands listed in help (hidden ones stay hidden)
+const TABS=['help','whoami','focus','research','services','contact','spin','theme','ls','cat','date','history','clear'];
+
+const hist=[];let hi=-1;
+async function run(raw){
+  const s=raw.trim();busy=true;line.hidden=true;
+  add(P+'<span class="f">'+esc(s)+'</span>');
+  if(s){hist.push(s);hi=hist.length}
+  const [name,...rest]=s.split(/\s+/);const low=s.toLowerCase();let key=ALIAS[name?.toLowerCase()]||name?.toLowerCase();
+  if(/barrel roll/.test(low))key='barrel'; else if(/^light ?bar/.test(low)){key='lightbar';rest.splice(0,rest.length,...low.replace(/^light ?bar/,'').trim().split(/\s+/))} else if(/^(nav|navigation|position) ?lights|^wing ?tips?/.test(low)){key='navlights';rest.splice(0,rest.length,...low.replace(/^(nav|navigation|position) ?lights|^wing ?tips?/,'').trim().split(/\s+/))} else if(/lamp ?test/.test(low))key='lamptest'; else if(/master caution/.test(low))key='ack'; else if(/^(make me a )?(coffee|tea)/.test(low))key='coffee'; else if(/hack( the)? plane/.test(low))key='hack';
+  if(/^charlie[\s-]+oscar[\s-]+india[\s-]+november$/.test(low))key='__coin'; else if(/^challenge( coins?)?$/.test(low))key='coin';
+  if(!s){} else if(key==='__coin') await coinBrief(); else if(C[key]) await C[key](rest.join(' ')); else if(s.split(/\s+/).length>=3||/\?$/.test(s)) await lines(['<span class="d">I\'m a scripted terminal, not a chatbot. No AI is answering here.</span>','Try <span class="c">help</span>, or ask a person at <a href="https://cybersafety.aero" target="_blank" rel="noopener">cybersafety.aero</a>.']); else add(`<span class="err">command not found:</span> ${esc(name)} <span class="d">· try</span> <span class="c">help</span>`);
+  add('');busy=false;line.hidden=false;screen.scrollTop=screen.scrollHeight;if(!matchMedia('(pointer:coarse)').matches)cmd.focus({preventScroll:true});
+}
+function send(){const v=cmd.value;cmd.value='';if(!busy)run(v)}
+line.addEventListener('submit',e=>{e.preventDefault();send()});
+cmd.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.isComposing){e.preventDefault();send();return}
+  if(e.key==='ArrowUp'){if(hi>0){hi--;cmd.value=hist[hi]}e.preventDefault()}
+  else if(e.key==='ArrowDown'){if(hi<hist.length-1){hi++;cmd.value=hist[hi]}else{hi=hist.length;cmd.value=''}e.preventDefault()}
+  else if(e.key==='Tab'&&!e.shiftKey){const v=cmd.value.toLowerCase();if(!v.trim())return; // empty line: let Tab move focus
+    if(v.startsWith('cat ')){const q=v.slice(4);const f=Object.keys(FILES).filter(x=>q.startsWith('.')||!x.startsWith('.')).find(x=>x.startsWith(q));e.preventDefault();if(f)cmd.value='cat '+f;return}
+    const m=TABS.filter(n=>n.startsWith(v));if(!m.length){e.preventDefault();return}/* text typed, nothing to complete: stay put; empty line or Shift+Tab still leaves */if(m.length===1&&m[0]!==v){e.preventDefault();cmd.value=m[0]}else if(m.length>1){e.preventDefault();add('<span class="d">'+m.join('   ')+'</span>')}}
+  else if(e.key==='l'&&e.ctrlKey){e.preventDefault();if(!busy)C.clear()}
+});
+screen.addEventListener('click',()=>{if(!line.hidden&&!getSelection().toString())cmd.focus({preventScroll:true})});
+const CHIPS=['help','whoami','focus','research','services','contact','spin'];
+document.getElementById('chips').innerHTML=CHIPS.map(c=>`<button type="button" data-c="${c}"><b>$</b>${c}</button>`).join('');
+document.getElementById('chips').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(gameOn){dispatchEvent(new KeyboardEvent('keydown',{key:'q'}));return}if(booting){skip=true;return}if(!busy)run(b.dataset.c)});
+
+// ---------- konami: afterburner ----------
+const KON=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];let kp=0;
+addEventListener('keydown',e=>{kp=(e.key===KON[kp]||e.key.toLowerCase()===KON[kp])?kp+1:(e.key===KON[0]?1:0);
+  if(kp===KON.length){kp=0;if(booting||busy)return;afterburner()}});
+async function afterburner(){busy=true;line.hidden=true;const r=document.getElementById('rotor'),r0=document.getElementById('r0'),g1=document.getElementById('g1'),g2=document.getElementById('g2');
+  add('<span class="y">↑↑↓↓←→←→ B A</span>');add('<span class="ok">[ ok ]</span> afterburner engaged');r.classList.add('spin','burn');
+  if(!reduce){const t0=performance.now();await new Promise(res=>{(function f(now){const tt=(now-t0)/1000,a=tt*1440;r0.style.transform=`rotate(${a}deg)`;g1.style.transform=`rotate(${a-12}deg)`;g2.style.transform=`rotate(${a-24}deg)`;g1.style.opacity=.35;g2.style.opacity=.2;
+    if(tt<3.2)requestAnimationFrame(f);else{r0.style.transform='';g1.style.opacity=0;g2.style.opacity=0;res()}})(t0)})}
+  r.classList.remove('spin','burn');
+  await lines(['<span class="d">Note:</span> cheat codes are not an acceptable means of compliance.','']);busy=false;line.hidden=false;if(!matchMedia('(pointer:coarse)').matches)cmd.focus({preventScroll:true})}
+
+// ---------- boot ----------
+let booting=true;
+addEventListener('keydown',e=>{if(booting&&!e.metaKey&&!e.ctrlKey)skip=true},{capture:true});
+screen.addEventListener('pointerdown',()=>{if(booting)skip=true});
+(async function boot(){
+  add('<span class="d">CyberBen OS · Blueprint kernel · tty1</span>');await sleep(420);
+  await dots('verifying model weights','<span class="f">ML-DSA-65 sig valid</span>');
+  await dots('pq handshake','<span class="f">X25519MLKEM768</span>');
+  await dots('isolating cabin wi-fi','<span class="f">segmented</span>');
+  await dots('loading threat model','<span class="f">airworthiness security</span>');
+  await dots('arming runtime monitor','<span class="f">online</span>');
+  await dots('spinning up rotor','<span class="f">settled</span>',420);spin();
+  add('');await sleep(380);
+  const deep=linkCmd();
+  if(!deep){
+    await type(P,'whoami');await sleep(140);await C.whoami();add('');await sleep(420);
+    await type(P,'cat focus.txt');await sleep(140);await C.focus();
+  }
+  add('<span class="d">Type</span> <span class="c">help</span><span class="d">, or tap a command below.</span>');add('');
+  booting=false;skip=reduce;stateEl.textContent='ready';line.hidden=false;screen.scrollTop=screen.scrollHeight;
+  if(deep)run(deep);else if(!matchMedia('(pointer:coarse)').matches)cmd.focus({preventScroll:true});
+})();
+// ---------- deep links: cyberben.ai/#play, #gps, #barrel-roll ----------
+function linkCmd(){let h='';try{h=decodeURIComponent(location.hash.slice(1)).toLowerCase().replace(/[-_+]/g,' ').trim()}catch(_){}
+  if(!h||h.length>40)return '';const k=h.split(' ')[0];
+  return (C[k]||ALIAS[k]||/barrel roll|lamp ?test|hack( the)? plane/.test(h))?h:''}
+addEventListener('hashchange',()=>{const c=linkCmd();if(c&&!busy&&!booting&&!gameOn)run(c)});
+</script>
+
+</body>
+</html>
