@@ -1,0 +1,8 @@
+# Security contact for cyberben.ai (RFC 9116)
+# The same team and policy as cybersafety.aero.
+Contact: mailto:security@cybersafety.aero
+Expires: 2027-10-30T23:59:59Z
+Encryption: https://cybersafety.aero/pgp-key.asc
+Preferred-Languages: en
+
+Canonical: https://cyberben.ai/.well-known/security.txt
