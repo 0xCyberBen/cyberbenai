@@ -1,0 +1,17 @@
+# robots.txt · cyberben.ai
+# One public page. Everyone may read it; the easter eggs stay hidden anyway.
+User-agent: *
+Allow: /
+ 
+# ── Optional: opt out of AI model training ──────────────────────────
+# Search engines and AI search/answer bots (OAI-SearchBot, ChatGPT-User,
+# Claude-SearchBot, Claude-User, PerplexityBot, Googlebot) keep working.
+# To opt out of training, remove the "# " in front of each line below.
+#
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
+User-agent: meta-externalagent
+Disallow: /

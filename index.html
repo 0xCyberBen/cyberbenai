@@ -6,6 +6,12 @@
 <meta name="description" content="CyberBen: aviation cybersafety and AI assurance, Tallinn.">
 <script>try{var t=localStorage.getItem("cb-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 <title>cyberben.ai</title>
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32x32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c1016" media="(prefers-color-scheme: dark)">
 <link rel="preload" href="fonts/ibm-plex-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:'IBM Plex Mono';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/ibm-plex-mono-latin-400-normal.woff2) format('woff2')}
@@ -79,6 +85,10 @@ header{display:flex;justify-content:space-between;align-items:center;gap:12px;fl
 @media (prefers-reduced-motion:reduce){.belt.flash{animation:none}}
 .ruler{height:8px;border-bottom:1px solid var(--line);background:repeating-linear-gradient(90deg,var(--t1) 0 1px,transparent 1px 11px),repeating-linear-gradient(90deg,var(--t2) 0 2px,transparent 2px 44px);background-size:auto 4px,auto 8px;background-repeat:repeat-x;background-position:0 4px,0 0;position:relative;transition:background-color .4s,box-shadow .4s}
 /* easter eggs: exterior lights on the ruler */
+/* aurora: the same ruler boxes as the light bar, one solid colour per 44px box, stepping along (pixelated) */
+.ruler.aur{background-image:repeating-linear-gradient(90deg,var(--t1) 0 1px,transparent 1px 11px),repeating-linear-gradient(90deg,var(--t2) 0 2px,transparent 2px 44px),linear-gradient(90deg,#14e39a 0 44px,#19d6ab 44px 88px,#24d2d6 88px 132px,#2bb8ff 132px 176px,#4b8dff 176px 220px,#7a5cff 220px 264px,#a24dff 264px 308px,#7a5cff 308px 352px,#4b8dff 352px 396px,#24d2d6 396px 440px);background-size:auto 4px,auto 8px,440px 8px;background-repeat:repeat-x;background-position:0 4px,0 0,0 0;box-shadow:0 0 12px 2px rgba(20,227,154,.45),0 0 36px rgba(122,92,255,.3);animation:aur 5s steps(10) infinite;z-index:1}
+@keyframes aur{to{background-position:0 4px,0 0,440px 0}}
+@media (prefers-reduced-motion:reduce){.ruler.aur{animation:none}}
 .ruler.lb{background-color:#2f6bff;box-shadow:0 0 12px 2px rgba(47,107,255,.65),0 0 36px rgba(47,107,255,.3);animation:hum 2.5s ease-in-out infinite;z-index:1}
 @keyframes hum{50%{background-color:#4d82ff;box-shadow:0 0 18px 4px rgba(77,130,255,.8),0 0 54px rgba(77,130,255,.4)}}
 .ruler::before,.ruler::after{content:"";position:absolute;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;opacity:0;transition:opacity .3s;z-index:2}
@@ -232,21 +242,23 @@ const C={
   contact:async()=>lines(['Start a conversation at <a href="https://cybersafety.aero" target="_blank" rel="noopener">cybersafety.aero</a>','Encrypted? The PGP key is published there too.']),
   spin:async()=>{spin(true);await lines(['<span class="ok">[ ok ]</span> rotor spin-up · settling on the logo'])},
   ls:async(a)=>lines([(a.includes('-a')?'<span class="y">.blackbox</span>   <span class="y">.hangar</span>   ':'')+'<span class="c">focus.txt</span>   <span class="c">research/</span>   <span class="c">services/</span>   <span class="c">contact.txt</span>']),
-  blackbox:async()=>lines(['<span class="y">FLIGHT DATA RECORDER</span> · ai@cyberben','  incidents logged ........ '+LOG.length,'  challenge coins minted .. 0 · <span class="d">[REDACTED]</span>','  near misses ............. 1',...lastEntry(),'  sim hours logged ........ 0 · <span class="d">type</span> <span class="c">play</span>','  exterior lights ......... '+extLights(),'  flight status ........... '+(inFlight?'<span class="y">airborne · CB-42</span>':'on ground · ready')]),
+  blackbox:async()=>lines(['<span class="y">FLIGHT DATA RECORDER</span> · ai@cyberben','  incidents logged ........ '+LOG.length,'  challenge coins minted .. 0 · <span class="d">[REDACTED]</span>','  near misses ............. 1',...lastEntry(),'  sim hours logged ........ 0 · <span class="d">type</span> <span class="c">play</span>','  exterior lights ......... '+extLights(),'  flight status ........... '+(ditched?'<span class="amber">ditched · Gulf of Finland</span>':inFlight?'<span class="y">airborne · CB-42</span>':'on ground · ready')]),
   coffee:async()=>lines(['<span class="err">HTTP 418:</span> I\'m a teapot.',inFlight?'The galley cart is on its way. Please keep your threat model stowed.':'Galley service starts after take-off.']),
-  atc:async()=>{if(inFlight)return lines(['<span class="c">tower:</span> CyberBen four-two, you are already airborne. Contact Tallinn Radar.','<span class="d">Type</span> <span class="c">land</span> <span class="d">to come back.</span>']);
+  atc:async()=>{if(ditched)return lines(['<span class="c">tower:</span> CyberBen four-two, you are in the water. Await rescue.','<span class="d">Type</span> <span class="c">clear</span> <span class="d">to reboot the simulation.</span>']);if(inFlight)return lines(['<span class="c">tower:</span> CyberBen four-two, you are already airborne. Contact Tallinn Radar.','<span class="d">Type</span> <span class="c">land</span> <span class="d">to come back.</span>']);
+    await briefing();
     const info=Math.random()<.5?'DELTA':'ECHO',m=metar();atis=info;
     await lines(['<span class="d">ATIS EETN · information</span> <span class="y">'+info+'</span>','  <span class="f">'+m+'</span>',''],120);await sleep(300);
     await type('<span class="d">CB-42:</span> ','Tallinn Tower, CyberBen four-two, holding point runway two-six, information '+info[0]+info.slice(1).toLowerCase()+', ready for departure.',16);await sleep(500);
     if(!navOn()){await type('<span class="c">tower:</span> ','CyberBen four-two, hold position. Your position lights are off.',14);await sleep(300);
       return lines(['<span class="amber">[!]</span> pre-departure check · position lights OFF','<span class="d">Type</span> <span class="c">navlights</span><span class="d">, then call the tower again.</span>'])}
     await type('<span class="c">tower:</span> ','CyberBen four-two, wind two-four-zero degrees eight knots, runway two-six, cleared for take-off. No threats on frequency.',14);await sleep(400);
-    await type('<span class="d">CB-42:</span> ','Cleared for take-off runway two-six, CyberBen four-two.',16);await sleep(300);await C.fly()},
-  land:async()=>{if(!inFlight)return lines(['Already on the ground. Try <span class="c">atc</span> for a departure.']);
+    await type('<span class="d">CB-42:</span> ','Cleared for take-off runway two-six, CyberBen four-two.',16);await sleep(300);await C.fly('--briefed')},
+  land:async()=>{if(ditched)return lines(['Already down: in the water. Type <span class="c">clear</span> to reboot the simulation.']);if(!inFlight)return lines(['Already on the ground. Try <span class="c">atc</span> for a departure.']);
     if(lit.size)return lines(['<span class="c">tower:</span> CyberBen four-two, continue approach, report when the caution is resolved.','<span class="amber">[!]</span> CYBER caution still active · run the <span class="c">checklist</span>, then <span class="c">ack</span>']);
     await type('<span class="c">tower:</span> ','CyberBen four-two, wind two-four-zero degrees eight knots, runway two-six, cleared to land.',14);await sleep(400);
     await lines(['<span class="ok">[ ok ]</span> touchdown · runway 26 · Tallinn','<span class="d">Welcome to Tallinn. Please keep your threat model fastened until the aircraft has come to a complete stop.</span>'],160);setFlight(false)},
-  fly:async()=>{if(inFlight)return lines(['Already airborne · CB-42 cruising. Type <span class="c">land</span> to come back down.']);
+  fly:async(a)=>{if(ditched)return lines(['CB-42 is floating. Aircraft don\'t take off from the Gulf of Finland.','<span class="d">Type</span> <span class="c">clear</span> <span class="d">to reboot the simulation.</span>']);if(inFlight)return lines(['Already airborne · CB-42 cruising. Type <span class="c">land</span> to come back down.']);
+    if(navOn()&&a!=='--briefed')await briefing();
     if(!navOn())return lines(['<span class="amber">[!]</span> take-off rejected · position lights OFF','<span class="d">No lights, no take-off. Type</span> <span class="c">navlights</span> <span class="d">first, or run the</span> <span class="c">checklist</span><span class="d">.</span>']);
     const d=add('');d.style.whiteSpace='nowrap';d.style.overflow='hidden';
     d.innerHTML='<span class="d">··········</span><span class="f">✈</span>';const dw=d.firstChild.getBoundingClientRect().width/10||8.4,pw=d.lastChild.getBoundingClientRect().width||16;
@@ -274,15 +286,40 @@ const C={
   navlights:async(a)=>{const on=a.trim()==='off'?false:a.trim()==='on'?true:!navOn();
     if(!on&&inFlight)return lines(['<span class="amber">[!]</span> position lights stay on while airborne.','<span class="d">Type</span> <span class="c">land</span> <span class="d">first.</span>']);ruler.classList.toggle('nav',on);
     await lines(on?['<span class="ok">[ ok ]</span> position lights on','  <span style="color:#ff3b30">●</span> red · port wing tip (left)','  <span class="ok">●</span> green · starboard wing tip (right)','  <span class="f">●</span> white strobes · anti-collision','<span class="d">Red on the left, green on the right: you are looking from the cockpit.</span>']:['<span class="ok">[ ok ]</span> position lights off'])},
-  lights:async(a)=>{const on=a.trim()!=='off';lightbar(on);if(!on&&inFlight)return lines(['<span class="ok">[ ok ]</span> light bar off','<span class="amber">[!]</span> position lights stay on while airborne.']);
+  aurora:async(a)=>{const on=a.trim()==='off'?false:a.trim()==='on'?true:!ruler.classList.contains('aur');ruler.classList.toggle('aur',on);
+    if(!on)return lines(['<span class="ok">[ ok ]</span> aurora alert cleared · geomagnetic activity back to quiet']);
+    await lines(['<span class="amber">[!]</span> AURORA ALERT · geomagnetic storm · Kp 6 <span class="d">(simulated)</span>','  sky ............ aurora visible north of 59°N · Tallinn in range','  GNSS ........... accuracy may degrade: space weather, <span class="f">not an attack</span>','  HF radio ....... polar routes may lose HF · use VHF or SATCOM',
+      inFlight?'<span class="d">CB-42 is heading west: the aurora is off the right wing.</span>':'<span class="d">Look north. Check the space weather before you blame the hackers.</span>'],120)},
+  cat:async(a)=>{const f=a.trim();if(!f)return lines(['<span class="y"> /\\_/\\</span>','<span class="y">( o.o )</span>  <span class="err">cat:</span> which file? Try <span class="c">ls</span>.','<span class="y"> &gt; ^ &lt;</span>  <span class="d">The hangar cat checks every file anyway.</span>']);const k=FILES[f]||FILES[f+'/'];if(k)return C[k]();return lines([`<span class="err">cat:</span> ${esc(f)}: no such file`])},
+  safety:async()=>{if(inFlight)return lines(['The cabin safety briefing is given before take-off.','<span class="d">The seatbelt sign is on: please stay seated. It comes round again after</span> <span class="c">land</span><span class="d">.</span>']);
+    safetyDone=true;const R=(l,s)=>'  '+l+' '+'.'.repeat(Math.max(2,16-l.length))+' '+s;
+    await lines(['<span class="y">CABIN SAFETY BRIEFING</span> · CB-42','Welcome aboard CyberBen four-two. Please give us your attention for a moment.','',
+      R('seatbelt','fasten it whenever the sign is on'),R('exits','Esc or Q leave the simulator · clear reboots everything'),R('oxygen masks','secure your own systems first, then help others'),R('life vest','under your seat, labelled “backups” · test it before you need it'),
+      R('devices','airplane mode on · no charging from unknown USB ports'),R('smoking','not permitted, including in the server room'),'','<span class="d">Thank you for your attention. Enjoy the flight.</span>'],110)},
+  water:async()=>{if(ditched)return lines(['CB-42 is already floating in the Gulf of Finland.','<span class="d">Type</span> <span class="c">clear</span> <span class="d">to reboot the simulation.</span>']);
+    if(!inFlight)return lines(['We are on the runway, not the water.','<span class="d">A water landing needs a flight first:</span> <span class="c">navlights</span> <span class="d">·</span> <span class="c">atc</span>']);
+    await lines(['<span class="amber">[!]</span> DITCHING · CB-42 · Gulf of Finland']);
+    await type('<span class="d">CB-42:</span> ','Mayday, mayday, mayday, Tallinn Radar, CyberBen four-two, ditching in the Gulf of Finland.',14);await sleep(300);
+    await type('<span class="c">radar:</span> ','CyberBen four-two, Tallinn Radar, mayday acknowledged. Rescue services alerted.',14);await sleep(300);
+    await lines(['<span class="amber">cabin:</span> Brace, brace, brace!'],0);await sleep(500);
+    const d=add('');d.style.whiteSpace='nowrap';d.style.overflow='hidden';d.innerHTML='<span class="c">~~~~~~~~~~</span><span class="f">✈</span>';
+    const dw=d.firstChild.getBoundingClientRect().width/10||8.4,pw=d.lastChild.getBoundingClientRect().width||16,w=Math.max(8,Math.floor((d.clientWidth-pw)/dw)-1);
+    for(let i=0;i<=w;i+=skip||reduce?w:2){const k=Math.round(i*0.7);d.innerHTML='<span class="c">'+'~'.repeat(k)+'</span><span class="d">'+'·'.repeat(i-k)+'</span><span class="f">✈</span>';screen.scrollTop=screen.scrollHeight;await sleep(24)}
+    d.innerHTML='<span class="c">'+'~'.repeat(w)+'</span><span class="f">✈</span><span class="c">~</span>';
+    setFlight(false);ditched=true;stateEl.textContent='ditched';stateEl.classList.add('air');ruler.classList.remove('lb','aur');
+    await lines(['<span class="ok">[ ok ]</span> touchdown on water · all on board safe','  life vests ..... inflated <span class="d">(this is why you test your backups)</span>','  slide rafts .... deployed','  position ....... 59°35′N 24°42′E · Gulf of Finland','  rescue ......... boats on the way','','<span class="d">CB-42 is floating. Type</span> <span class="c">clear</span> <span class="d">to reboot the simulation.</span>'],140)},
+  dog:async()=>lines(['<span class="y">  / \\__</span>','<span class="y"> (    @\\___</span>','<span class="y"> /         O</span>','<span class="y">/   (_____/</span>','<span class="y">/_____/   U</span>','K9-42 swept the cargo hold: no threats found, one sandwich confiscated.'],60),
+  pet:async()=>lines(['You pet the hangar cat. It purrs at a steady 25 Hz.','<span class="d">Vibration within limits. No maintenance action required.</span>']),
+  food:async()=>lines(inFlight?['<span class="f">Chicken or pasta?</span>','<span class="d">Both have been threat-modelled. The pasta has a known issue: it is always lukewarm.</span>']:['The galley is closed on the ground.','<span class="d">Meal service starts after take-off:</span> <span class="c">atc</span>']),
+  lights:async(a)=>{const on=a.trim()!=='off';lightbar(on);if(!on)ruler.classList.remove('aur');if(!on&&inFlight)return lines(['<span class="ok">[ ok ]</span> light bar off','<span class="amber">[!]</span> position lights stay on while airborne.']);
     ruler.classList.toggle('nav',on);await lines([on?'<span class="ok">[ ok ]</span> all exterior lights on':'<span class="ok">[ ok ]</span> all exterior lights off'])},
   hangar:async()=>lines(['<span class="y">.hangar</span> · ACCESS RESTRICTED','  door ................ <span class="err">locked</span>','  unlock .............. say the callsign the way the tower would','  callsign ............ <span class="f">C · O · I · N</span>']),
   coin:async()=>lines(['<span class="err">denied:</span> no coin without clearance.','<span class="d">Something in</span> <span class="c">ls -a</span> <span class="d">is locked.</span>']),
   checklist:async(a)=>{const ok='<span class="ok">[x]</span>',no='<span class="amber">[ ]</span>',D=(l,s)=>l+' '+'.'.repeat(Math.max(2,20-l.length))+' '+s,R=(c,l,s)=>'  '+(c?ok:no)+' '+D(l,s);
     const nav=navOn(),cau=[...lit].map(x=>({gnss:'GNSS',adsb:'ADS-B',acars:'ACARS'}[x])).filter(Boolean);
-    if(!inFlight){const open=[!nav,!atis,!lampDone].filter(Boolean).length;
+    if(!inFlight){const open=[!nav,!atis,!lampDone,!safetyDone].filter(Boolean).length;
       return lines(['<span class="y">CHECKLIST</span> · BEFORE TAKE-OFF · CB-42',R(1,'threat model','loaded'),R(1,'runtime monitor','armed'),R(1,'GNSS integrity','monitoring'),R(1,'ADS-B plausibility','armed'),R(1,'ACARS uplinks','verify by voice'),
-        R(lampDone,'annunciators',lampDone?'tested':'not tested → <span class="c">lamptest</span>'),R(nav,'position lights',nav?'ON':'OFF → <span class="c">navlights</span>'),R(!!atis,'ATIS',atis?'information '+atis:'not received → <span class="c">atc</span>'),R(!cau.length,'CYBER caution',cau.length?cau.join(' · ')+' → <span class="c">ack</span>':'clear'),
+        R(lampDone,'annunciators',lampDone?'tested':'not tested → <span class="c">lamptest</span>'),R(safetyDone,'cabin briefing',safetyDone?'given':'not given → <span class="c">safety</span>'),R(nav,'position lights',nav?'ON':'OFF → <span class="c">navlights</span>'),R(!!atis,'ATIS',atis?'information '+atis:'not received → <span class="c">atc</span>'),R(!cau.length,'CYBER caution',cau.length?cau.join(' · ')+' → <span class="c">ack</span>':'clear'),
         '  <span class="d">[·]</span> '+D('seatbelt sign','on at take-off'),'',open||cau.length?'<span class="amber">'+(open+(cau.length?1:0))+' item(s) open.</span> <span class="d">Then call the tower:</span> <span class="c">atc</span>':'<span class="ok">Checklist complete.</span> <span class="d">Ready for departure:</span> <span class="c">atc</span>'],50)}
     return lines(['<span class="y">CHECKLIST</span> · IN-FLIGHT EVENTS · CB-42','<span class="d">Drills are live now. Type the command to run one.</span>',
       '  <span class="f">GNSS position jump</span> <span class="d">· drill</span> <span class="c">gps</span>','    cross-check IRS/DME · reject GNSS · tell ATC',
@@ -307,7 +344,6 @@ const C={
   sudo:async()=>lines(['<span class="err">sudo:</span> request denied. Least privilege applies here too.']),
   exit:async()=>lines(['There is no exit. Only continuous improvement.']),
   'rm':async(a)=>lines([a.includes('-rf')?'<span class="err">rm:</span> change rejected. No safety assessment attached.':'<span class="err">rm:</span> read-only file system']),
-  cat:async(a)=>{const f=a.trim();if(!f)return lines(['<span class="err">cat:</span> which file? Try <span class="c">ls</span>.']);const k=FILES[f]||FILES[f+'/'];if(k)return C[k]();return lines([`<span class="err">cat:</span> ${esc(f)}: no such file`])},
   ping:async(a)=>{const h=(a.trim()||'cybersafety.aero');await lines([`PING ${esc(h)}`]);for(let i=1;i<=3;i++){await sleep(380);add(`<span class="d">reply ${i} from</span> ${esc(h)} <span class="ok">secure</span>`)}},
   hello:async()=>lines(['Hello. Type <span class="c">help</span> to look around.']),
 };
@@ -401,17 +437,17 @@ async function coinBrief(){const Y=t=>'<span class="y">'+esc(t)+'</span>',T=t=>'
   await lines(['<span class="y">COIN BRIEFING</span> · EYES ONLY','  object ............... CyberBen challenge coin','  status ............... at the mint · ink, gold and cyan','  challenge ............ <span class="d">[REDACTED]</span> · opens <span class="d">[REDACTED]</span>','  format ............... flags hidden in plain sight','  you already hold ..... flag 0 of ? · <span class="f">CB{hangar-door-open}</span>','  how to earn it ....... <span class="d">[REDACTED]</span>','','Keep the flag. Tell no one. Watch this terminal.'],140);
   try{localStorage.setItem('cb-coin','flag0')}catch(_){}}
 // ---------- flight state: status + seatbelt sign ----------
-let inFlight=false,atis='',lampDone=false;
+let inFlight=false,atis='',lampDone=false,briefed=false,safetyDone=false,ditched=false;
 // clear = reboot of the simulation: back on stand, lights off, cautions cleared, checklist reset (theme, history, game best and coin flag stay)
-function resetSim(){const was=inFlight||lit.size||navOn()||lbOn()||!!atis||lampDone;
-  if(lit.size)clearCaution();ruler.classList.remove('nav','lb');term.classList.remove('gold','caution');
+function resetSim(){const was=ditched||inFlight||lit.size||navOn()||lbOn()||!!atis||lampDone;
+  if(lit.size)clearCaution();ruler.classList.remove('nav','lb','aur');briefed=false;safetyDone=false;ditched=false;term.classList.remove('gold','caution');
   inFlight=false;atis='';lampDone=false;stateEl.textContent='ready';stateEl.classList.remove('air');belt.classList.remove('show','on','flash');return was}
 // attack drills only run in flight; on the ground each says why
 const GROUND={gps:'GNSS · 12 satellites · position steady at the stand.',adsb:'ADS-B IN · only ground traffic on the apron. Nothing to see down here.',acars:'ACARS · pre-departure clearance received and verified.',hack:'Aircraft on stand, systems cold. Try again in flight; we will stop you there too.'};
 function grounded(k){return lines([GROUND[k],'<span class="d">Attack drills run in flight. Take off first:</span> <span class="c">checklist</span> <span class="d">·</span> <span class="c">navlights</span> <span class="d">·</span> <span class="c">atc</span>'])}const belt=document.getElementById('belt');
 function ding(hi){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const ac=chime.ac||(chime.ac=new A());const t=ac.currentTime,g=ac.createGain(),v=ac.createOscillator();
   v.type='sine';v.frequency.value=hi?1318:988;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.07,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+1.1);v.connect(g).connect(ac.destination);v.start(t);v.stop(t+1.2)}catch(_){}}
-function setFlight(on){inFlight=on;stateEl.textContent=on?'in-flight':'ready';stateEl.classList.toggle('air',on);
+function setFlight(on){inFlight=on;if(!on){briefed=false;safetyDone=false}stateEl.textContent=on?'in-flight':'ready';stateEl.classList.toggle('air',on);
   if(on){belt.classList.add('show','on');belt.classList.remove('flash');void belt.offsetWidth;belt.classList.add('flash');ding(true)}
   else{ding(false);belt.classList.remove('on','flash');setTimeout(()=>{if(!inFlight)belt.classList.remove('show')},1200)}}
 function metar(){const d=new Date(),p=n=>String(n).padStart(2,'0');let m=d.getUTCMinutes()>=50?50:d.getUTCMinutes()>=20?20:50,h=d.getUTCHours(),day=d.getUTCDate();
@@ -420,7 +456,9 @@ function metar(){const d=new Date(),p=n=>String(n).padStart(2,'0');let m=d.getUT
 const ruler=document.querySelector('.ruler');
 function lightbar(on){ruler.classList.toggle('lb',on)}
 const navOn=()=>ruler.classList.contains('nav'),lbOn=()=>ruler.classList.contains('lb');
-function extLights(){const n=navOn(),b=lbOn();if(!n&&!b)return 'off · <span class="c">navlights</span> <span class="d">·</span> <span class="c">lightbar</span>';
+async function briefing(){if(briefed)return;briefed=true;const m=metar().split(' ');const aur=ruler.classList.contains('aur');
+  await lines(['<span class="y">PRE-FLIGHT BRIEFING</span> · CB-42','  route .......... EETN → EETN · local flight · runway 26','  weather ........ '+m.slice(3).join(' '),'  NOTAM .......... GNSS interference reported in the Baltic region','  cyber .......... ADS-B and ACARS are unauthenticated · verify by voice','  space weather .. '+(aur?'<span class="amber">aurora alert · Kp 6 · expect GNSS degradation</span>':'quiet'),'  crew ........... position lights '+(navOn()?'on':'<span class="amber">OFF</span>')+' · caution '+(lit.size?'<span class="amber">open</span>':'clear'),'  cabin .......... safety briefing '+(safetyDone?'given':'<span class="amber">not given</span> · passengers can ask: <span class="c">safety</span>'),''],90)}
+function extLights(){const n=navOn(),b=lbOn();if(ruler.classList.contains('aur'))return '<span class="ok">aurora alert</span>'+(n?' · <span class="ok">position · strobes on</span>':' · position off');if(!n&&!b)return 'off · <span class="c">navlights</span> <span class="d">·</span> <span class="c">lightbar</span>';
   return [n?'<span class="ok">position · strobes on</span>':'position off',b?'<span class="ok">light bar on</span>':'light bar off'].join(' · ')}
 function chime(){try{const A=window.AudioContext||window.webkitAudioContext;if(!A)return;const ac=chime.ac||(chime.ac=new A());const t=ac.currentTime;
   [0,.18,.36].forEach((o,i)=>{const g=ac.createGain(),v=ac.createOscillator();v.type='sine';v.frequency.value=i===2?988:880;g.gain.setValueAtTime(0,t+o);g.gain.linearRampToValueAtTime(.08,t+o+.02);g.gain.exponentialRampToValueAtTime(.001,t+o+.16);v.connect(g).connect(ac.destination);v.start(t+o);v.stop(t+o+.18)})}catch(_){}}
@@ -440,7 +478,7 @@ function clearCaution(){lit.clear();term.classList.remove('caution');['cyber','g
   const c=document.getElementById('lamp-cyber');c.setAttribute('aria-label','CYBER caution light, off');document.getElementById('liveDot').classList.remove('caution');document.getElementById('sysText').textContent='SYS · SECURE'}
 document.getElementById('lamp-cyber').addEventListener('click',()=>{if(lit.size&&!busy)run('ack')});
 
-const ALIAS={game:'play',flight:'play',fly2:'play',spoof:'gps','ads-b':'adsb',traffic:'adsb',tcas:'adsb',datalink:'acars',cancel:'ack','master-caution':'ack',test:'lamptest','light-bar':'lightbar',lightbar:'lightbar',bar:'lightbar','nav-lights':'navlights',nav:'navlights',wingtips:'navlights',wingtip:'navlights',strobes:'navlights',strobe:'navlights',tea:'coffee',brew:'coffee',tower:'atc',takeoff:'fly','take-off':'fly',landing:'land',touchdown:'land',check:'checklist',checklists:'checklist',preflight:'checklist','pre-flight':'checklist',hack:'hack','?':'help',man:'help',about:'whoami',ai:'focus',lab:'research',cls:'clear',hi:'hello',hey:'hello','open':'contact',web:'contact'};
+const ALIAS={game:'play',flight:'play',fly2:'play',spoof:'gps','ads-b':'adsb',traffic:'adsb',tcas:'adsb',datalink:'acars',cancel:'ack','master-caution':'ack',test:'lamptest','light-bar':'lightbar',lightbar:'lightbar',bar:'lightbar','nav-lights':'navlights',nav:'navlights',wingtips:'navlights',wingtip:'navlights',strobes:'navlights',strobe:'navlights',tea:'coffee',brew:'coffee',tower:'atc',takeoff:'fly','take-off':'fly',landing:'land',touchdown:'land',doggo:'dog',ditch:'water',ditching:'water',splash:'water',splashdown:'water','safety-briefing':'safety',demo:'safety',cabin:'safety',puppy:'dog',k9:'dog',kitty:'pet',meow:'pet',purr:'pet',meal:'food',snack:'food',lunch:'food',dinner:'food',breakfast:'food',chicken:'food',pasta:'food',northernlights:'aurora',check:'checklist',checklists:'checklist',preflight:'checklist','pre-flight':'checklist',hack:'hack','?':'help',man:'help',about:'whoami',ai:'focus',lab:'research',cls:'clear',hi:'hello',hey:'hello','open':'contact',web:'contact'};
 const NAMES=[...Object.keys(C),'cat focus.txt'];
 // Tab completes only the commands listed in help (hidden ones stay hidden)
 const TABS=['help','whoami','focus','research','services','contact','spin','theme','ls','cat','date','history','clear'];
@@ -451,7 +489,7 @@ async function run(raw){
   add(P+'<span class="f">'+esc(s)+'</span>');
   if(s){hist.push(s);hi=hist.length}
   const [name,...rest]=s.split(/\s+/);const low=s.toLowerCase();let key=ALIAS[name?.toLowerCase()]||name?.toLowerCase();
-  if(/barrel roll/.test(low))key='barrel'; else if(/^light ?bar/.test(low)){key='lightbar';rest.splice(0,rest.length,...low.replace(/^light ?bar/,'').trim().split(/\s+/))} else if(/^(nav|navigation|position) ?lights|^wing ?tips?/.test(low)){key='navlights';rest.splice(0,rest.length,...low.replace(/^(nav|navigation|position) ?lights|^wing ?tips?/,'').trim().split(/\s+/))} else if(/lamp ?test/.test(low))key='lamptest'; else if(/master caution/.test(low))key='ack'; else if(/^(make me a )?(coffee|tea)/.test(low))key='coffee'; else if(/hack( the)? plane/.test(low))key='hack';
+  if(/barrel roll/.test(low))key='barrel'; else if(/^(northern lights|aurora alert|space weather)/.test(low))key='aurora'; else if(/^pet the (cat|dog)/.test(low))key='pet'; else if(/^water ?landing/.test(low))key='water'; else if(/^(cabin )?safety( briefing| demo)?$/.test(low))key='safety'; else if(/^light ?bar/.test(low)){key='lightbar';rest.splice(0,rest.length,...low.replace(/^light ?bar/,'').trim().split(/\s+/))} else if(/^(nav|navigation|position) ?lights|^wing ?tips?/.test(low)){key='navlights';rest.splice(0,rest.length,...low.replace(/^(nav|navigation|position) ?lights|^wing ?tips?/,'').trim().split(/\s+/))} else if(/lamp ?test/.test(low))key='lamptest'; else if(/master caution/.test(low))key='ack'; else if(/^(make me a )?(coffee|tea)/.test(low))key='coffee'; else if(/hack( the)? plane/.test(low))key='hack';
   if(/^charlie[\s-]+oscar[\s-]+india[\s-]+november$/.test(low))key='__coin'; else if(/^challenge( coins?)?$/.test(low))key='coin';
   if(!s){} else if(key==='__coin') await coinBrief(); else if(C[key]) await C[key](rest.join(' ')); else if(s.split(/\s+/).length>=3||/\?$/.test(s)) await lines(['<span class="d">I\'m a scripted terminal, not a chatbot. No AI is answering here.</span>','Try <span class="c">help</span>, or ask a person at <a href="https://cybersafety.aero" target="_blank" rel="noopener">cybersafety.aero</a>.']); else add(`<span class="err">command not found:</span> ${esc(name)} <span class="d">· try</span> <span class="c">help</span>`);
   add('');busy=false;line.hidden=false;screen.scrollTop=screen.scrollHeight;if(!matchMedia('(pointer:coarse)').matches)cmd.focus({preventScroll:true});
