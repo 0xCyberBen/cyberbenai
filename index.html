@@ -294,7 +294,7 @@ const C={
   safety:async()=>{if(inFlight)return lines(['The cabin safety briefing is given before take-off.','<span class="d">The seatbelt sign is on: please stay seated. It comes round again after</span> <span class="c">land</span><span class="d">.</span>']);
     safetyDone=true;const R=(l,s)=>'  '+l+' '+'.'.repeat(Math.max(2,16-l.length))+' '+s;
     await lines(['<span class="y">CABIN SAFETY BRIEFING</span> · CB-42','Welcome aboard CyberBen four-two. Please give us your attention for a moment.','',
-      R('seatbelt','fasten it whenever the sign is on'),R('exits','Esc or Q leave the simulator · clear reboots everything'),R('oxygen masks','secure your own systems first, then help others'),R('life vest','under your seat, labelled “backups” · test it before you need it'),
+      R('seatbelt','fasten it whenever the sign is on'),R('exits','Esc or Q leave the simulator · clear reboots everything'),R('oxygen masks','secure your own systems first, then help others'),R('life vest','under your seat, labelled “backups” · trial it!'),
       R('devices','airplane mode on · no charging from unknown USB ports'),R('smoking','not permitted, including in the server room'),'','<span class="d">Thank you for your attention. Enjoy the flight.</span>'],110)},
   water:async()=>{if(ditched)return lines(['CB-42 is already floating in the Gulf of Finland.','<span class="d">Type</span> <span class="c">clear</span> <span class="d">to reboot the simulation.</span>']);
     if(!inFlight)return lines(['We are on the runway, not the water.','<span class="d">A water landing needs a flight first:</span> <span class="c">navlights</span> <span class="d">·</span> <span class="c">atc</span>']);
